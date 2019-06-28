@@ -338,3 +338,7 @@ pyvenv.cfg
 .venv
 pip-selfcheck.json
 
+.idea/Agents4Asteroids.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
