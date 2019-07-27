@@ -3,6 +3,7 @@ import random
 
 key = pyglet.window.key
 
+
 class MenuScreen:
 
     def __init__(self, window):
@@ -11,28 +12,39 @@ class MenuScreen:
                                   x=(window.width // 2) - 10, y=(window.height // 2) - 10,
                                   anchor_x="center", anchor_y="center")
         self.fps_display = pyglet.clock.ClockDisplay()
-        self.stars = pyglet.graphics.vertex_list(4, ('v2i', (
-            random.randint(0, window.width), random.randint(0, window.height),
-            random.randint(0, window.width), random.randint(0, window.height),
-            random.randint(0, window.width), random.randint(0, window.height),
-            random.randint(0, window.width), random.randint(0, window.height)
-        )))
+        initial_stars = tuple([random.randint(0, window.width) if i % 2 == 0 else
+                               random.randint(0, window.height) for i in range(0, 40)])
+        self.stars = pyglet.graphics.vertex_list(len(initial_stars)//2, ('v2i', initial_stars))
 
         @window.event
         def on_draw():
             window.clear()
             self.stars.draw(pyglet.graphics.GL_POINTS)
-            self.twinkle(window)
+            self.passing_stars(window)
             self.label.draw()
             self.fps_display.draw()
 
-    def twinkle(self, window):
+    def passing_stars(self, window):
         """
-        Set stars to twinkle in the background
+        Cause stars to appear to be passing
         """
-        star_to_twinkle = random.randint(0, 3)*2
-        self.stars.vertices[star_to_twinkle] = random.randint(0, window.width)
-        self.stars.vertices[star_to_twinkle+1] = random.randint(0, window.height)
+        for i in range(0, len(self.stars.vertices), 2):
+            # If the star has reached the edge of the screen reset it into the middle
+            if self.stars.vertices[i] >= window.width or self.stars.vertices[i+1] >= window.height:
+                self.stars.vertices[i] = random.randint((window.width/2)-(window.width/10),
+                                                        (window.width/2)+(window.width/10))
+                self.stars.vertices[i+1] = random.randint((window.height/2)-(window.height/10),
+                                                          (window.height/2)+(window.height/10))
+            else:
+                # If the star has not reached the edge keep showing it passing through space
+                if self.stars.vertices[i] > window.width-self.stars.vertices[i]:
+                    self.stars.vertices[i] += window.width//100
+                else:
+                    self.stars.vertices[i] -= window.width//100
+                if self.stars.vertices[i+1] > window.height-self.stars.vertices[i+1]:
+                    self.stars.vertices[i+1] += window.height//100
+                else:
+                    self.stars.vertices[i+1] -= window.height//100
 
 
 class Player1Screen:
