@@ -15,6 +15,10 @@ class BoostState(Enum):
     BOOSTING = 2
 
 
+def multiplier(fps):
+    return ((100 - fps) / 100) if fps < 80 else 0.2
+
+
 class Particle:
 
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y):
@@ -23,9 +27,9 @@ class Particle:
         self.velocity_x = velocity_x
         self.velocity_y = velocity_y
 
-    def update(self, fps):
-        self.centre_x += self.velocity_x * ((100 - fps) / 100)
-        self.centre_y += self.velocity_y * ((100 - fps) / 100)
+    def update(self, multiplier):
+        self.centre_x += self.velocity_x * multiplier
+        self.centre_y += self.velocity_y * multiplier
 
     def draw(self):
         pyglet.graphics.draw(1, pyglet.gl.GL_POINTS, ('v2i', (int(self.centre_x), int(self.centre_y))))
@@ -57,11 +61,11 @@ class Ship:
     def stop_turn(self):
         self.turn_state = TurnState.STATIONARY
 
-    def turn(self, fps):
+    def turn(self, multiplier):
         if self.turn_state is TurnState.RIGHT:
-            self.facing -= self.turn_speed * ((100 - fps) / 100)
+            self.facing -= self.turn_speed * multiplier
         elif self.turn_state is TurnState.LEFT:
-            self.facing += self.turn_speed * ((100 - fps) / 100)
+            self.facing += self.turn_speed * multiplier
 
     def boost(self):
         self.boost_state = BoostState.BOOSTING
@@ -86,11 +90,11 @@ class Ship:
         else:
             self.thrust = 0
 
-    def update(self, window_width, window_height, fps):
-        self.turn(fps)
+    def update(self, window_width, window_height, multiplier):
+        self.turn(multiplier)
         self.velocity_handler()
-        self.centre_x += self.velocity_x * ((100 - fps) / 100)
-        self.centre_y += self.velocity_y * ((100 - fps) / 100)
+        self.centre_x += self.velocity_x * multiplier
+        self.centre_y += self.velocity_y * multiplier
         if self.centre_x < -10:
             self.centre_x = window_width + 10
         elif self.centre_x > window_width + 10:
@@ -128,9 +132,9 @@ class Asteroid:
             self.points.append(random.uniform(self.radius-(self.radius/5), self.radius+(self.radius/5))
                                * sin(i*((2 * pi)/self.num_of_points)))
 
-    def update(self, fps):
-        self.centre_x += self.velocity_x * ((100 - fps) / 100)
-        self.centre_y += self.velocity_y * ((100 - fps) / 100)
+    def update(self, multiplier):
+        self.centre_x += self.velocity_x * multiplier
+        self.centre_y += self.velocity_y * multiplier
 
     def draw(self):
         current_points = []

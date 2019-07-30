@@ -30,9 +30,13 @@ class Game:
         self.window_height = window.height
         self.points = 0
 
+    def multiplier(self):
+        fps = pyglet.clock.get_fps()
+        return ((100 - fps) / 100) if fps < 80 else 0.2
+
     def draw(self):
         if self.state is GameState.INPLAY:
-            self.ship.update(self.window_width, self.window_height, pyglet.clock.get_fps())
+            self.ship.update(self.window_width, self.window_height, self.multiplier())
             self.fps_display.draw()
             self.ship.draw()
             self.particles, self.asteroids, self.ship = \
@@ -113,14 +117,14 @@ class Game:
                     destroyed_particles.append(particle)
             if not destroyed_asteroid:
                 preserved_asteroids.append(asteroid)
-                asteroid.update(pyglet.clock.get_fps())
+                asteroid.update(self.multiplier())
                 asteroid.draw()
             else:
                 self.points += 1
         for particle in particles:
             if particle not in destroyed_particles and\
                     0 < particle.centre_x < window_width and 0 < particle.centre_y < window_height:
-                particle.update(pyglet.clock.get_fps())
+                particle.update(self.multiplier())
                 particle.draw()
                 preserved_particles.append(particle)
         return preserved_particles, preserved_asteroids, ship
