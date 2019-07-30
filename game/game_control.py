@@ -23,12 +23,13 @@ class Game:
         self.asteroids = []
         self.asteroid_creator = BackgroundScheduler()
         self.asteroid_creator.start()
-        self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval', seconds=3,
+        self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval', seconds=0.5,
                                       id='asteroid generator')
         self.state = GameState.INPLAY
         self.window_width = window.width
         self.window_height = window.height
         self.points = 0
+        self.agents = []
 
     def multiplier(self):
         fps = pyglet.clock.get_fps()
@@ -39,8 +40,10 @@ class Game:
             self.ship.update(self.window_width, self.window_height, self.multiplier())
             self.fps_display.draw()
             self.ship.draw()
-            self.particles, self.asteroids, self.ship = \
+            self.particles, self.asteroids, self.ship, reward = \
                 self.entity_update(self.window_width, self.window_height, self.particles, self.asteroids, self.ship)
+            for agent in self.agents:
+                agent.perceive(self, reward, GameState.INPLAY if self.ship is not None else GameState.OVER)
             if self.ship is None:
                 self.game_over()
         else:
@@ -105,22 +108,23 @@ class Game:
         preserved_particles = []
         preserved_asteroids = []
         ship = ship
+        reward = 0
         for asteroid in asteroids:
             destroyed_asteroid = False
             if self.out_of_window(asteroid,  window_width, window_height):
                 destroyed_asteroid = True
             if self.intersecting_ship(asteroid, ship):
-                return preserved_particles, preserved_asteroids, None
+                self.game_over_update()
+                return preserved_particles, preserved_asteroids, None, -20
             for particle in particles:
                 if self.is_inside(particle.centre_x, particle.centre_y, asteroid):
+                    reward += 1
                     destroyed_asteroid = True
                     destroyed_particles.append(particle)
             if not destroyed_asteroid:
                 preserved_asteroids.append(asteroid)
                 asteroid.update(self.multiplier())
                 asteroid.draw()
-            else:
-                self.points += 1
         for particle in particles:
             if particle not in destroyed_particles and\
                     0 < particle.centre_x < window_width and 0 < particle.centre_y < window_height:

@@ -1,6 +1,7 @@
 import pyglet
 import random
 from game.game_control import Game, GameState
+from game.agent import Agent, Action
 
 key = pyglet.window.key
 
@@ -34,6 +35,8 @@ class MenuScreen:
         def on_key_press(symbol, modifiers):
             if symbol == key.L:
                 self.screen = Player1Screen(window)
+            elif symbol == key.O:
+                self.screen = AgentScreen(window)
 
     def passing_stars(self, window, stars):
         """
@@ -58,6 +61,54 @@ class MenuScreen:
                     stars.vertices[i+1] -= window.height//150
 
 
+class AgentScreen:
+
+    def __init__(self, window):
+        self.game = Game(window)
+        self.agent = Agent(self.game)
+        self.game.attach(self.agent)
+
+        @window.event
+        def on_draw():
+            window.clear()
+            pyglet.text.Label("Agent Points: " + str(self.agent.points), font_name="Arial", font_size=12,
+                              x=0, y=window.height,
+                              anchor_x="left", anchor_y="top").draw()
+            if self.game.state is not GameState.OVER:
+                self.agent.perceive(self.game)
+                actions = self.agent.decide()
+                for action in actions:
+                    if action is Action.TURNRIGHT:
+                        self.game.ship.turn_right()
+                    elif action is Action.TURNLEFT:
+                        self.game.ship.turn_left()
+                    elif action is Action.STOPTURN:
+                        self.game.ship.stop_turn()
+                    elif action is Action.BOOST:
+                        self.game.ship.boost()
+                    elif action is Action.STOPBOOST:
+                        self.game.ship.stop_boost()
+                    elif action is Action.FIRE:
+                        self.game.particles.append(self.game.ship.fire())
+                self.game.draw()
+            else:
+                self.agent.perceive(self.game)
+                self.game = Game(window)
+                self.agent.new_game(self.game)
+                self.game.attach(self.agent)
+
+        @window.event
+        def on_key_press(symbol, modifiers):
+            if symbol == key.L:
+                self.screen = Player1Screen(window)
+            elif symbol == key.O:
+                self.screen = AgentScreen(window)
+            elif symbol == key.K:
+                self.screen = MenuScreen(window)
+            elif symbol == key.P:
+                self.game.pause_unpause()
+
+
 class Player1Screen:
 
     def __init__(self, window):
@@ -75,6 +126,8 @@ class Player1Screen:
         def on_key_press(symbol, modifiers):
             if symbol == key.L:
                 self.screen = Player1Screen(window)
+            elif symbol == key.O:
+                self.screen = AgentScreen(window)
             elif symbol == key.K:
                 self.screen = MenuScreen(window)
             elif symbol == key.P:
@@ -121,6 +174,8 @@ class GameOverScreen:
                 self.screen = Player1Screen(window)
             elif symbol == key.K:
                 self.screen = MenuScreen(window)
+            elif symbol == key.O:
+                self.screen = AgentScreen(window)
 
 
 class Controller:
