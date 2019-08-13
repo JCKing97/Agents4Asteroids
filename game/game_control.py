@@ -19,7 +19,7 @@ class Game:
     def __init__(self, window):
         self.ship = Ship(window.width//2, window.height//2)
         self.particles = []
-        self.fps_display = pyglet.clock.ClockDisplay()
+        self.fps_display = pyglet.window.FPSDisplay(window=window)
         self.asteroids = []
         self.asteroid_creator = BackgroundScheduler()
         self.asteroid_creator.start()
@@ -131,7 +131,7 @@ class Game:
                 particle.update(self.multiplier())
                 particle.draw()
                 preserved_particles.append(particle)
-        return preserved_particles, preserved_asteroids, ship
+        return preserved_particles, preserved_asteroids, ship, reward
 
     def intersecting_ship(self, asteroid, ship):
         # Detection adapted from http://www.phatcode.net/articles.php?id=459

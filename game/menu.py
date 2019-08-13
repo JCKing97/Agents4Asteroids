@@ -13,7 +13,7 @@ class MenuScreen:
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
                                        x=(window.width // 2) - 10, y=3*(window.height // 4) - 10,
                                        anchor_x="center", anchor_y="center")
-        self.fps_display = pyglet.clock.ClockDisplay()
+        self.fps_display = pyglet.window.FPSDisplay(window=window)
         initial_stars = tuple([random.randint(0, window.width) if i % 2 == 0 else
                                random.randint(0, window.height) for i in range(0, 40)])
         self.stars = pyglet.graphics.vertex_list(len(initial_stars)//2, ('v2i', initial_stars))
@@ -186,5 +186,3 @@ class Controller:
         pyglet.app.run()
 
 
-if __name__ == "__main__":
-    Controller()
