@@ -30,7 +30,6 @@ class Game:
         self.window_height = window.height
         self.points = 0
         self.agents = []
-        self.test = 0
 
     def multiplier(self):
         fps = pyglet.clock.get_fps()
