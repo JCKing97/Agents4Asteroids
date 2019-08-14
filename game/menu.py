@@ -7,6 +7,11 @@ key = pyglet.window.key
 
 
 class MenuScreen:
+    """
+    The main screen where the player chooses to start the game. The keys to
+    play the game are shown on screen. Either the player can play themselves
+    or an agent can play the game.
+    """
 
     def __init__(self, window):
 
@@ -62,6 +67,9 @@ class MenuScreen:
 
 
 class AgentScreen:
+    """
+    If it is chosen that the agent should play the game this class is loaded.
+    """
 
     def __init__(self, window):
         self.game = Game(window)
@@ -110,6 +118,9 @@ class AgentScreen:
 
 
 class Player1Screen:
+    """
+    The player class which captures the keys to move the ship and play the game.
+    """
 
     def __init__(self, window):
         self.game = Game(window)
@@ -151,6 +162,9 @@ class Player1Screen:
 
 
 class GameOverScreen:
+    """
+    When the player dies this screen is shown
+    """
 
     def __init__(self, window, points):
         self.fps_display = pyglet.clock.ClockDisplay()
@@ -179,7 +193,9 @@ class GameOverScreen:
 
 
 class Controller:
-
+    """
+    Starts the program. Creates a window and calls the menu screen.
+    """
     def __init__(self):
         self.window = pyglet.window.Window()
         self.screen = MenuScreen(self.window)

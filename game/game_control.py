@@ -9,13 +9,14 @@ key = pyglet.window.key
 
 
 class GameState(Enum):
+    """ What state is the game in currently? """
     INPLAY = 1
     PAUSED = 2
     OVER = 3
 
 
 class Game:
-
+    """ Handles the interaction between the player and the game objects. """
     def __init__(self, window):
         self.ship = Ship(window.width//2, window.height//2)
         self.particles = []
@@ -32,14 +33,17 @@ class Game:
         self.agents = []
 
     def multiplier(self):
+        """ We have defined this function in multiple places. I think there would be a better solution for this. """
         fps = pyglet.clock.get_fps()
         return ((100 - fps) / 100) if fps < 80 else 0.2
 
     def draw(self):
+        """ Calls the draw functions of all the different objects to update them. """
         if self.state is GameState.INPLAY:
             self.ship.update(self.window_width, self.window_height, self.multiplier())
             self.fps_display.draw()
             self.ship.draw()
+            # Maybe we could distinguish if a player is currently playing or an agent.
             self.particles, self.asteroids, self.ship, reward = \
                 self.entity_update(self.window_width, self.window_height, self.particles, self.asteroids, self.ship)
             for agent in self.agents:
@@ -58,9 +62,11 @@ class Game:
                           anchor_x="right", anchor_y="top").draw()
 
     def game_over(self):
+        """ Sets the game state to OVER. """
         self.state = GameState.OVER
 
     def pause_unpause(self):
+        """ Sets the game state from INPLAY to PAUSED and vice versa. """
         if self.state is GameState.INPLAY:
             self.state = GameState.PAUSED
             self.asteroid_creator.pause_job('asteroid generator')
@@ -69,6 +75,7 @@ class Game:
             self.asteroid_creator.resume_job('asteroid generator')
 
     def particle_update(self, window, particles):
+        """ Updates the particles. Not sure why it's not in the game entitiy class. """
         for particle in particles:
             if 0 < particle.centre_x < window.width and 0 < particle.centre_y < window.height:
                 particle.centre_x += particle.velocity_x
@@ -78,9 +85,14 @@ class Game:
                 particles.remove(particle)
 
     def add_particle(self, particle):
+        """ Adds a particle to the list of current particles. """
         self.particles.append(particle)
 
     def asteroid_generate(self, window):
+        """
+        Creates an asteroid. This also seems like it should be in the entity class. As in the calculations
+        could be in the Asteroid class and then we just call here asteroid.generate().
+        """
         if random.randint(0, 1) == 0:
             start_x = random.choice([0, window.width])
             start_y = random.randint(0, window.height)
@@ -100,10 +112,12 @@ class Game:
         self.asteroids.append(Asteroid(start_x, start_y, velocity_x, velocity_y, 15))
 
     def out_of_window(self, asteroid,  window_width, window_height):
+        """ Calculates if an asteroid is visible. """
         return (window_height + asteroid.radius < asteroid.centre_y or asteroid.centre_y < -asteroid.radius) or\
                (window_width + asteroid.radius < asteroid.centre_x or asteroid.centre_x < -asteroid.radius)
 
     def entity_update(self, window_width, window_height, particles, asteroids, ship):
+        """ Updates the game entity objects. This includes the particles, asteroids and the ship. """
         destroyed_particles = []
         preserved_particles = []
         preserved_asteroids = []
@@ -134,6 +148,7 @@ class Game:
         return preserved_particles, preserved_asteroids, ship, reward
 
     def intersecting_ship(self, asteroid, ship):
+        """ Calculates the collision detection between the ship and asteroids. """
         # Detection adapted from http://www.phatcode.net/articles.php?id=459
         v1x = int(ship.centre_x + (2 * ship.height * cos(ship.facing)))
         v1y = int(ship.centre_y + (2 * ship.height * sin(ship.facing)))

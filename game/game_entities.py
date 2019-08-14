@@ -5,12 +5,14 @@ from math import cos, sin, pi
 
 
 class TurnState(Enum):
+    """ Is the player currently rotating? """
     STATIONARY = 1
     RIGHT = 2
     LEFT = 3
 
 
 class BoostState(Enum):
+    """ Is the ship moving? """
     STATIONARY = 1
     BOOSTING = 2
 
@@ -20,6 +22,7 @@ def multiplier(fps):
 
 
 class Particle:
+    """ Bullets which are fired from the ship. """
 
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y):
         self.centre_x = centre_x
@@ -28,15 +31,17 @@ class Particle:
         self.velocity_y = velocity_y
 
     def update(self, multiplier):
+        """ Update the position of the bullet. """
         self.centre_x += self.velocity_x * multiplier
         self.centre_y += self.velocity_y * multiplier
 
     def draw(self):
+        """ Draw the bullet on the new position. """
         pyglet.graphics.draw(1, pyglet.gl.GL_POINTS, ('v2i', (int(self.centre_x), int(self.centre_y))))
 
 
 class Ship:
-
+    """ The ship with its constants. """
     def __init__(self, centre_x, centre_y):
         self.facing = 0
         self.centre_x = centre_x
@@ -53,15 +58,19 @@ class Ship:
         self.particle_canon_speed = 20
 
     def turn_right(self):
+        """ Changes the state of the ship if it turns right. """
         self.turn_state = TurnState.RIGHT
 
     def turn_left(self):
+        """ Changes the state of the ship if it turns left. """
         self.turn_state = TurnState.LEFT
 
     def stop_turn(self):
+        """ Changes state if the ship doesn't turn. """
         self.turn_state = TurnState.STATIONARY
 
     def turn(self, multiplier):
+        """ Turns the ship according to the FPS. """
         if self.turn_state is TurnState.RIGHT:
             self.facing -= self.turn_speed * multiplier
         elif self.turn_state is TurnState.LEFT:
@@ -74,6 +83,7 @@ class Ship:
         self.boost_state = BoostState.STATIONARY
 
     def fire(self):
+        """ Returns a particle object that is spawned from the front of the ship. """
         return Particle(
             self.centre_x + (2 * self.height * cos(self.facing)),
             self.centre_y + (2 * self.height * sin(self.facing)),
@@ -82,6 +92,10 @@ class Ship:
         )
 
     def velocity_handler(self):
+        """
+        Changes the value of the velocity of the ship in x and y axis.
+        If the ship is already in the BOOSTING state it will create a higher trust.
+        """
         if self.boost_state is BoostState.BOOSTING:
             if self.thrust < self.thrust_max:
                 self.thrust += self.thrust_incr
@@ -91,6 +105,7 @@ class Ship:
             self.thrust = 0
 
     def update(self, window_width, window_height, multiplier):
+        """ Update the various variables of the ship. """
         self.turn(multiplier)
         self.velocity_handler()
         self.centre_x += self.velocity_x * multiplier
@@ -105,6 +120,7 @@ class Ship:
             self.centre_y = -10
 
     def draw(self):
+        """ Redraw the ship at the 'new' location. """
         pyglet.graphics.draw_indexed(3, pyglet.gl.GL_LINE_LOOP,
                                      [0, 1, 2],
                                      ('v2i', (int(self.centre_x + (2 * self.height * cos(self.facing))),
@@ -117,7 +133,7 @@ class Ship:
 
 
 class Asteroid:
-
+    """ Handles how the asteroids are being drawn and their velocity and positioning. """
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y, size):
         self.centre_x = centre_x
         self.centre_y = centre_y
