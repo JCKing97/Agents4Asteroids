@@ -1,5 +1,6 @@
 import pyglet
 import random
+from abc import ABC
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -8,9 +9,23 @@ from game.agent import Agent, Action
 from game.perception import VectorPerception
 
 key = pyglet.window.key
- 
 
-class MenuScreen:
+
+class Screen(ABC):
+
+    def __init__(self, screen_listener):
+        self.screen_listener = screen_listener
+
+    @property
+    def screen(self):
+        return self
+
+    @screen.setter
+    def screen(self, to_set):
+        self.screen_listener.set_screen(to_set)
+
+
+class MenuScreen(Screen):
     """
     The main screen where the player chooses to start the game. The keys to
     play the game are shown on screen. Either the player can play themselves
@@ -18,6 +33,7 @@ class MenuScreen:
     """
 
     def __init__(self, window, screen_listener):
+        super().__init__(screen_listener)
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
                                        x=(window.width // 2) - 10, y=3*(window.height // 4) - 10,
                                        anchor_x="center", anchor_y="center")
@@ -30,7 +46,6 @@ class MenuScreen:
         self.stars_runner.add_job(lambda: self.passing_stars(window),
                                   'interval', seconds=0.01, id='display passing stars')
         self.stars_runner.start()
-        self.screen_listener = screen_listener
 
         @window.event
         def on_key_press(symbol, modifiers):
@@ -40,14 +55,6 @@ class MenuScreen:
             elif symbol == key.O:
                 self.stars_runner.pause()
                 self.screen = AgentScreen(window, screen_listener)
-
-    @property
-    def screen(self):
-        return self
-
-    @screen.setter
-    def screen(self, to_set):
-        self.screen_listener.set_screen(to_set)
 
     def draw(self, window):
         self.stars.draw(pyglet.graphics.GL_POINTS)
@@ -85,12 +92,13 @@ class MenuScreen:
                     self.stars.vertices[i+1] -= window.height//300
 
 
-class AgentScreen:
+class AgentScreen(Screen):
     """
     If it is chosen that the agent should play the game this class is loaded.
     """
 
     def __init__(self, window, screen_listener):
+        super().__init__(screen_listener)
         self.game = Game(window)
         self.agent = Agent(self.game.ship)
         self.game.attach(self.agent)
@@ -145,7 +153,7 @@ class AgentScreen:
                           anchor_x="left", anchor_y="top").draw()
 
 
-class Player1Screen:
+class Player1Screen(Screen):
     """
     The screen for when playing a one player game. Capture the key presses to direct the ship.
     """
@@ -156,6 +164,7 @@ class Player1Screen:
 
         :param window: The window to get the drawing mechanism and key presses from.
         """
+        super().__init__(screen_listener)
         self.game = Game(window)
         self.game.start()
 
@@ -205,12 +214,13 @@ class Player1Screen:
         self.game.update()
 
 
-class GameOverScreen:
+class GameOverScreen(Screen):
     """
     When the player dies this screen is shown.
     """
 
     def __init__(self, window, screen_listener, points):
+        super().__init__(screen_listener)
         self.fps_display = pyglet.clock.ClockDisplay()
         self.points = points
         self.screen_listener = screen_listener
@@ -249,7 +259,7 @@ class GameOverScreen:
 
 class Controller:
     """
-    Starts the program. Creates a window and calls the menu screen.
+    Starts the program, controls the screens on show.
     """
     def __init__(self):
         self.window = pyglet.window.Window()
@@ -257,15 +267,27 @@ class Controller:
 
         @self.window.event
         def on_draw():
-            self.update(self.window)
+            self.clear_update_draw(self.window)
 
         pyglet.clock.schedule(lambda dt: 1 / 60)
         pyglet.app.run()
 
-    def update(self, window):
+    def clear_update_draw(self, window):
+        """
+        Clear the window, update the screen and draw the screen.
+
+        :param window: The window to update and draw with.
+        :return: None
+        """
         window.clear()
         self.screen.update(window)
         self.screen.draw(window)
 
     def set_screen(self, screen_to_set):
+        """
+        Set the current screen to screen_to_set.
+
+        :param screen_to_set: The new screen to  be the current one.
+        :return: None
+        """
         self.screen = screen_to_set
