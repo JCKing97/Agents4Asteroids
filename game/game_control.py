@@ -56,6 +56,7 @@ class Game:
         pyglet.text.Label("Points: " + str(self.points), font_name="Arial", font_size=12,
                           x=self.window_width, y=self.window_height,
                           anchor_x="right", anchor_y="top").draw()
+        return reward
 
     def game_over(self):
         self.state = GameState.OVER
@@ -114,10 +115,11 @@ class Game:
             if self.out_of_window(asteroid,  window_width, window_height):
                 destroyed_asteroid = True
             if self.intersecting_ship(asteroid, ship):
-                self.game_over_update()
-                return preserved_particles, preserved_asteroids, None, -20
+                self.state = GameState.OVER
+                return preserved_particles, preserved_asteroids, ship, -20
             for particle in particles:
                 if self.is_inside(particle.centre_x, particle.centre_y, asteroid):
+                    self.points += 1
                     reward += 1
                     destroyed_asteroid = True
                     destroyed_particles.append(particle)
@@ -131,7 +133,7 @@ class Game:
                 particle.update(self.multiplier())
                 particle.draw()
                 preserved_particles.append(particle)
-        return preserved_particles, preserved_asteroids, ship
+        return preserved_particles, preserved_asteroids, ship, reward
 
     def intersecting_ship(self, asteroid, ship):
         # Detection adapted from http://www.phatcode.net/articles.php?id=459
@@ -145,11 +147,7 @@ class Game:
         if self.is_inside(v1x, v1y, asteroid) or\
                 self.is_inside(v2x, v2y, asteroid) or\
                 self.is_inside(v3x, v3y, asteroid):
-            return True
-        # Check if circle center inside the ship
-        if ((v2y - v1y)*(asteroid.centre_x - v1x) - (v2x - v1x)*(asteroid.centre_y - v1y)) >= 0  and \
-            ((v3y - v2y)*(asteroid.centre_x - v2x) - (v3x - v2x)*(asteroid.centre_y - v2y)) >= 0  and \
-            ((v1y - v3y)*(asteroid.centre_x - v3x) - (v1x - v3x)*(asteroid.centre_y - v3x)) >= 0:
+            print("Vertex intersecting asteroid")
             return True
         # Check if edges intersect circle
         # First edge
@@ -165,6 +163,7 @@ class Game:
             k = k / length
             if k < length:
                 if sqrt(c1x * c1x + c1y * c1y - k * k) <= asteroid.radius:
+                    print("Edge intersects circle")
                     return True
 
         # Second edge
@@ -180,6 +179,7 @@ class Game:
             k = k / length
             if k < length:
                 if sqrt(c2x * c2x + c2y * c2y - k * k) <= asteroid.radius:
+                    print("Edge intersects circle")
                     return True
 
         # Third edge
@@ -195,6 +195,7 @@ class Game:
             k = k / length
             if k < length:
                 if sqrt(c3x * c3x + c3y * c3y - k * k) <= asteroid.radius:
+                    print("Edge intersects circle")
                     return True
         return False
 

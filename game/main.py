@@ -66,16 +66,13 @@ class AgentScreen:
     def __init__(self, window):
         self.game = Game(window)
         self.agent = Agent(self.game)
-        self.game.attach(self.agent)
+        self.last_reward = 0
 
         @window.event
         def on_draw():
             window.clear()
-            pyglet.text.Label("Agent Points: " + str(self.agent.points), font_name="Arial", font_size=12,
-                              x=0, y=window.height,
-                              anchor_x="left", anchor_y="top").draw()
             if self.game.state is not GameState.OVER:
-                self.agent.perceive(self.game)
+                self.agent.perceive(self.game, self.last_reward)
                 actions = self.agent.decide()
                 for action in actions:
                     if action is Action.TURNRIGHT:
@@ -90,12 +87,11 @@ class AgentScreen:
                         self.game.ship.stop_boost()
                     elif action is Action.FIRE:
                         self.game.particles.append(self.game.ship.fire())
-                self.game.draw()
+                self.last_reward = self.game.draw()
             else:
-                self.agent.perceive(self.game)
+                self.agent.perceive(self.game, self.last_reward)
                 self.game = Game(window)
                 self.agent.new_game(self.game)
-                self.game.attach(self.agent)
 
         @window.event
         def on_key_press(symbol, modifiers):

@@ -26,7 +26,7 @@ class Agent:
                               for particle in game.particles]
         self.last_action = []
 
-    def perceive(self, game, reward, game_state):
+    def perceive(self, game, reward):
         new_ship_state = {'centre_x': game.ship.centre_x, 'centre_y': game.ship.centre_y,
                            'velocity_x': game.ship.velocity_x, 'velocity_y': game.ship.velocity_y,
                            'facing': game.ship.facing, 'thrust': game.ship.thrust,
@@ -38,19 +38,19 @@ class Agent:
                                'velocity_x': particle.velocity_x, 'velocity_y': particle.velocity_y}
                               for particle in game.particles]
         self.remember(self.ship_state, self.asteroid_data, self.particle_data, self.last_action, new_ship_state,
-                      new_asteroid_data, new_particle_data, reward, game_state)
+                      new_asteroid_data, new_particle_data, reward)
         self.experience_replay()
 
     def remember(self, ship_data, asteroid_data, particle_data, last_action, new_ship_data, new_asteroid_data,
-                 new_particle_data, reward, game_state):
+                 new_particle_data, reward):
         pass
 
     def experience_replay(self):
         pass
 
     def decide(self):
-        action = [Action.TURNRIGHT, Action.FIRE]
-        self.last_action = [Action.TURNRIGHT, Action.FIRE]
+        action = [Action.FIRE]
+        self.last_action = action
         return action
 
     def new_game(self, game):
