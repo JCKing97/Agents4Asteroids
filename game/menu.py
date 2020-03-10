@@ -102,7 +102,6 @@ class AgentScreen(Screen):
         self.game = Game(window)
         self.agent = Agent(self.game.ship)
         self.game.attach(self.agent)
-        self.screen_listener = screen_listener
 
         @window.event
         def on_key_press(symbol, modifiers):
@@ -114,14 +113,6 @@ class AgentScreen(Screen):
                 self.screen = MenuScreen(window, screen_listener)
             elif symbol == key.P:
                 self.game.pause_toggle()
-
-    @property
-    def screen(self):
-        return self
-
-    @screen.setter
-    def screen(self, to_set):
-        self.screen_listener.set_screen(to_set)
 
     def update(self, window):
         if self.game.state is not GameState.OVER:
@@ -168,8 +159,6 @@ class Player1Screen(Screen):
         self.game = Game(window)
         self.game.start()
 
-        self.screen_listener = screen_listener
-
         @window.event
         def on_key_press(symbol, modifiers):
             if symbol == key.L:
@@ -197,14 +186,6 @@ class Player1Screen(Screen):
             if (self.game.state is GameState.INPLAY or self.game.state is GameState.PAUSED) and symbol == key.W:
                 self.game.ship.stop_boost()
 
-    @property
-    def screen(self):
-        return self
-
-    @screen.setter
-    def screen(self, to_set):
-        self.screen_listener.set_screen(to_set)
-
     def draw(self, window):
         self.game.draw()
 
@@ -223,7 +204,6 @@ class GameOverScreen(Screen):
         super().__init__(screen_listener)
         self.fps_display = pyglet.clock.ClockDisplay()
         self.points = points
-        self.screen_listener = screen_listener
 
         @window.event
         def on_key_press(symbol, modifiers):
@@ -233,14 +213,6 @@ class GameOverScreen(Screen):
                 self.screen = MenuScreen(window, screen_listener)
             elif symbol == key.O:
                 self.screen = AgentScreen(window, screen_listener)
-
-    @property
-    def screen(self):
-        return self
-
-    @screen.setter
-    def screen(self, to_set):
-        self.screen_listener.set_screen(to_set)
 
     def draw(self, window):
         self.fps_display.draw()
