@@ -5,24 +5,20 @@ from math import cos, sin, pi
 
 
 class TurnState(Enum):
-    """ Is the player currently rotating? """
+    """ Is the ship currently rotating. """
     STATIONARY = 1
     RIGHT = 2
     LEFT = 3
 
 
 class BoostState(Enum):
-    """ Is the ship moving? """
+    """ Is the ship booster currently on. """
     STATIONARY = 1
     BOOSTING = 2
 
 
-def multiplier(fps):
-    return ((100 - fps) / 100) if fps < 80 else 0.2
-
-
 class Particle:
-    """ Bullets which are fired from the ship. """
+    """ Particles which are fired from the particle canon. """
 
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y):
         self.centre_x = centre_x
@@ -30,10 +26,10 @@ class Particle:
         self.velocity_x = velocity_x
         self.velocity_y = velocity_y
 
-    def update(self, multiplier):
-        """ Update the position of the bullet. """
-        self.centre_x += self.velocity_x * multiplier
-        self.centre_y += self.velocity_y * multiplier
+    def update(self):
+        """ Update the position of the particle. """
+        self.centre_x += self.velocity_x
+        self.centre_y += self.velocity_y
 
     def draw(self):
         """ Draw the bullet on the new position. """
@@ -41,15 +37,23 @@ class Particle:
 
 
 class Ship:
-    """ The ship with its constants. """
+    """ A ship that is in the game. """
+
     def __init__(self, centre_x, centre_y):
+        """
+        Initialise the position, velocity, where the ship is facing, size of the ship, thrust,
+         turning settings and particle canon.
+
+        :param centre_x: The x coordinate of the center of the ship.
+        :param centre_y: The y coordinate of the center of the ship
+        """
         self.facing = 0
         self.centre_x = centre_x
         self.centre_y = centre_y
         self.velocity_x = 0
         self.velocity_y = 0
         self.height = 10
-        self.turn_speed = 0.3
+        self.turn_speed = 0.1
         self.turn_state = TurnState.STATIONARY
         self.boost_state = BoostState.STATIONARY
         self.thrust = 0
@@ -58,28 +62,30 @@ class Ship:
         self.particle_canon_speed = 20
 
     def turn_right(self):
-        """ Changes the state of the ship if it turns right. """
+        """ Changes the state of the ship to turn right. """
         self.turn_state = TurnState.RIGHT
 
     def turn_left(self):
-        """ Changes the state of the ship if it turns left. """
+        """ Changes the state of the ship to turn left. """
         self.turn_state = TurnState.LEFT
 
     def stop_turn(self):
         """ Changes state if the ship doesn't turn. """
         self.turn_state = TurnState.STATIONARY
 
-    def turn(self, multiplier):
+    def turn(self):
         """ Turns the ship according to the FPS. """
         if self.turn_state is TurnState.RIGHT:
-            self.facing -= self.turn_speed * multiplier
+            self.facing -= self.turn_speed
         elif self.turn_state is TurnState.LEFT:
-            self.facing += self.turn_speed * multiplier
+            self.facing += self.turn_speed
 
     def boost(self):
+        """ Start the ship booster. """
         self.boost_state = BoostState.BOOSTING
 
     def stop_boost(self):
+        """ Stop the ship booster. """
         self.boost_state = BoostState.STATIONARY
 
     def fire(self):
@@ -104,12 +110,12 @@ class Ship:
         else:
             self.thrust = 0
 
-    def update(self, window_width, window_height, multiplier):
+    def update(self, window_width, window_height):
         """ Update the various variables of the ship. """
-        self.turn(multiplier)
+        self.turn()
         self.velocity_handler()
-        self.centre_x += self.velocity_x * multiplier
-        self.centre_y += self.velocity_y * multiplier
+        self.centre_x += self.velocity_x
+        self.centre_y += self.velocity_y
         if self.centre_x < -10:
             self.centre_x = window_width + 10
         elif self.centre_x > window_width + 10:
@@ -148,9 +154,9 @@ class Asteroid:
             self.points.append(random.uniform(self.radius-(self.radius/5), self.radius+(self.radius/5))
                                * sin(i*((2 * pi)/self.num_of_points)))
 
-    def update(self, multiplier):
-        self.centre_x += self.velocity_x * multiplier
-        self.centre_y += self.velocity_y * multiplier
+    def update(self):
+        self.centre_x += self.velocity_x
+        self.centre_y += self.velocity_y
 
     def draw(self):
         current_points = []
