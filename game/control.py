@@ -127,6 +127,7 @@ class Game:
                     reward += 1
                     destroyed_asteroid = True
                     destroyed_particles.append(particle)
+                    self.points += 1
             if not destroyed_asteroid:
                 preserved_asteroids.append(asteroid)
                 asteroid.update()
