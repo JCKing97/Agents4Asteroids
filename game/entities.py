@@ -2,6 +2,7 @@ import pyglet
 import random
 from enum import Enum
 from math import cos, sin, pi
+from abc import ABC, abstractmethod
 
 
 class TurnState(Enum):
@@ -17,7 +18,24 @@ class BoostState(Enum):
     BOOSTING = 2
 
 
-class Particle:
+class Entity(ABC):
+
+    @abstractmethod
+    def update(self):
+        """
+        Update the internals e.g. position, velocity of the entity.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def draw(self):
+        """
+        Draw the entity on the screen.
+        """
+        raise NotImplementedError
+
+
+class Particle(Entity):
     """ Particles which are fired from the particle canon. """
 
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y):
@@ -36,10 +54,10 @@ class Particle:
         pyglet.graphics.draw(1, pyglet.gl.GL_POINTS, ('v2i', (int(self.centre_x), int(self.centre_y))))
 
 
-class Ship:
+class Ship(Entity):
     """ A ship that is in the game. """
 
-    def __init__(self, centre_x, centre_y):
+    def __init__(self, centre_x, centre_y, window):
         """
         Initialise the position, velocity, where the ship is facing, size of the ship, thrust,
          turning settings and particle canon.
@@ -60,6 +78,8 @@ class Ship:
         self.thrust_max = 0.2
         self.thrust_incr = 0.02
         self.particle_canon_speed = 15
+        self.window_width = window.width
+        self.window_height = window.height
 
     def turn_right(self):
         """ Changes the state of the ship to turn right. """
@@ -110,19 +130,19 @@ class Ship:
         else:
             self.thrust = 0
 
-    def update(self, window_width, window_height):
+    def update(self):
         """ Update the various variables of the ship. """
         self.turn()
         self.velocity_handler()
         self.centre_x += self.velocity_x
         self.centre_y += self.velocity_y
         if self.centre_x < -10:
-            self.centre_x = window_width + 10
-        elif self.centre_x > window_width + 10:
+            self.centre_x = self.window_width + 10
+        elif self.centre_x > self.window_width + 10:
             self.centre_x = -10
         if self.centre_y < -10:
-            self.centre_y = window_height + 10
-        elif self.centre_y > window_height + 10:
+            self.centre_y = self.window_height + 10
+        elif self.centre_y > self.window_height + 10:
             self.centre_y = -10
 
     def draw(self):
@@ -138,7 +158,7 @@ class Ship:
                                      )
 
 
-class Asteroid:
+class Asteroid(Entity):
     """ Handles how the asteroids are being drawn and their velocity and positioning. """
 
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y, size):
