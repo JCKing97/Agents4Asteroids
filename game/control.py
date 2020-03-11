@@ -21,7 +21,7 @@ class Game:
     def __init__(self, window):
         """
         Initialise the ship, particles, asteroids (and asteroid creator), state of the game, points and agents.
-        :param window:
+        :param window: The window to create the entities on.
         """
         self.ship = Ship(window.width//2, window.height//2)
         self.particles = []
@@ -49,6 +49,7 @@ class Game:
                           anchor_x="right", anchor_y="top").draw()
 
     def update(self):
+        """ Update the state of the entities """
         if self.state == GameState.INPLAY:
             self.ship.update(self.window_width, self.window_height)
             self.particles, self.asteroids, self.ship, reward = \

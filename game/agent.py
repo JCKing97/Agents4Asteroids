@@ -2,6 +2,7 @@ from enum import Enum
 from game.perception import Perception
 from game.entities import Ship
 from abc import ABC, abstractmethod
+from typing import List
 
 
 class Action(Enum):
@@ -38,7 +39,7 @@ class Agent(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def decide(self) -> Action:
+    def decide(self) -> List[Action]:
         """
         Decide an action to take at this point in time.
 

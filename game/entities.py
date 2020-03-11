@@ -2,7 +2,6 @@ import pyglet
 import random
 from enum import Enum
 from math import cos, sin, pi
-from abc import ABC
 
 
 class TurnState(Enum):

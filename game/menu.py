@@ -9,6 +9,8 @@ from game.control import Game, GameState
 from game.agent import Agent, Action
 from game.perception import VectorPerception
 
+from agents.dumb_agent import DumbAgent
+
 key = pyglet.window.key
 
 
@@ -84,7 +86,7 @@ class MenuScreen(Screen):
     or an agent can play the game.
     """
 
-    def __init__(self, window, screen_listener):
+    def __init__(self, window, screen_listener: ScreenListener):
         super().__init__(screen_listener)
 
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
@@ -149,10 +151,10 @@ class AgentScreen(Screen):
     If it is chosen that the agent should play the game this class is loaded.
     """
 
-    def __init__(self, window, screen_listener):
+    def __init__(self, window, screen_listener: ScreenListener):
         super().__init__(screen_listener)
-        self.game = Game(window)
-        self.agent = Agent(self.game.ship)
+        self.game: Game = Game(window)
+        self.agent: Agent = DumbAgent(self.game.ship)
         self.game.attach(self.agent)
 
         @window.event
