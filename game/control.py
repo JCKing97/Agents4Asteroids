@@ -3,69 +3,61 @@ import random
 from enum import Enum
 from math import cos, sin, sqrt
 from apscheduler.schedulers.background import BackgroundScheduler
-from game.game_entities import Ship, Asteroid
+from game.entities import Ship, Asteroid
 
 key = pyglet.window.key
 
 
 class GameState(Enum):
-    """ What state is the game in currently? """
+    """ Is the game currently running, paused or is it game over. """
     INPLAY = 1
     PAUSED = 2
     OVER = 3
 
 
 class Game:
-    """ Handles the interaction between the player and the game objects. """
+    """ Handles the interaction between the agents and the environment. Handles the updating of the environment. """
+
     def __init__(self, window):
+        """
+        Initialise the ship, particles, asteroids (and asteroid creator), state of the game, points and agents.
+        :param window: The window to create the entities on.
+        """
         self.ship = Ship(window.width//2, window.height//2)
         self.particles = []
         self.fps_display = pyglet.window.FPSDisplay(window=window)
         self.asteroids = []
         self.asteroid_creator = BackgroundScheduler()
-        self.asteroid_creator.start()
         self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval', seconds=0.5,
                                       id='asteroid generator')
         self.state = GameState.INPLAY
         self.window_width = window.width
         self.window_height = window.height
         self.points = 0
-        self.agents = []
-
-    def multiplier(self):
-        """ We have defined this function in multiple places. I think there would be a better solution for this. """
-        fps = pyglet.clock.get_fps()
-        return ((100 - fps) / 100) if fps < 80 else 0.2
 
     def draw(self):
-        """ Calls the draw functions of all the different objects to update them. """
-        if self.state is GameState.INPLAY:
-            self.ship.update(self.window_width, self.window_height, self.multiplier())
-            self.fps_display.draw()
+        """ Draws the entities. """
+        self.fps_display.draw()
+        if self.ship is not None:
             self.ship.draw()
-            # Maybe we could distinguish if a player is currently playing or an agent.
-            self.particles, self.asteroids, self.ship, reward = \
-                self.entity_update(self.window_width, self.window_height, self.particles, self.asteroids, self.ship)
-            for agent in self.agents:
-                agent.perceive(self, reward, GameState.INPLAY if self.ship is not None else GameState.OVER)
-            if self.ship is None:
-                self.game_over()
-        else:
-            self.fps_display.draw()
-            self.ship.draw()
-            for asteroid in self.asteroids:
-                asteroid.draw()
-            for particle in self.particles:
-                particle.draw()
+        for asteroid in self.asteroids:
+            asteroid.draw()
+        for particle in self.particles:
+            particle.draw()
         pyglet.text.Label("Points: " + str(self.points), font_name="Arial", font_size=12,
                           x=self.window_width, y=self.window_height,
                           anchor_x="right", anchor_y="top").draw()
 
-    def game_over(self):
-        """ Sets the game state to OVER. """
-        self.state = GameState.OVER
+    def update(self):
+        """ Update the state of the entities """
+        if self.state == GameState.INPLAY:
+            self.ship.update(self.window_width, self.window_height)
+            self.particles, self.asteroids, self.ship, reward = \
+                self.entity_update(self.window_width, self.window_height, self.particles, self.asteroids, self.ship)
+            if self.ship is None:
+                self.game_over()
 
-    def pause_unpause(self):
+    def pause_toggle(self):
         """ Sets the game state from INPLAY to PAUSED and vice versa. """
         if self.state is GameState.INPLAY:
             self.state = GameState.PAUSED
@@ -128,21 +120,22 @@ class Game:
             if self.out_of_window(asteroid,  window_width, window_height):
                 destroyed_asteroid = True
             if self.intersecting_ship(asteroid, ship):
-                self.game_over_update()
+                self.game_over()
                 return preserved_particles, preserved_asteroids, None, -20
             for particle in particles:
                 if self.is_inside(particle.centre_x, particle.centre_y, asteroid):
                     reward += 1
                     destroyed_asteroid = True
                     destroyed_particles.append(particle)
+                    self.points += 1
             if not destroyed_asteroid:
                 preserved_asteroids.append(asteroid)
-                asteroid.update(self.multiplier())
+                asteroid.update()
                 asteroid.draw()
         for particle in particles:
             if particle not in destroyed_particles and\
                     0 < particle.centre_x < window_width and 0 < particle.centre_y < window_height:
-                particle.update(self.multiplier())
+                particle.update()
                 particle.draw()
                 preserved_particles.append(particle)
         return preserved_particles, preserved_asteroids, ship, reward
@@ -219,3 +212,12 @@ class Game:
             return True
         else:
             return False
+
+    def start(self):
+        """ Run the game. """
+        self.asteroid_creator.start()
+
+    def game_over(self):
+        """ The end of the game when the player dies. """
+        self.asteroid_creator.pause()
+        self.state = GameState.OVER

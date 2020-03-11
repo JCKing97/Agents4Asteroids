@@ -1,8 +1,12 @@
 from enum import Enum
-from game.game_control import GameState
+from game.perception import Perception
+from game.entities import Ship
+from abc import ABC, abstractmethod
+from typing import List
 
 
 class Action(Enum):
+    """ The actions available to an agent at each point in a game """
     BOOST = 1
     STOPBOOST = 2
     TURNRIGHT = 3
@@ -11,57 +15,40 @@ class Action(Enum):
     FIRE = 6
 
 
-class Agent:
+class Agent(ABC):
+    """
+    An interface for agent that is capable of perceiving it's environment,
+     storing details of the environment and making decisions of how to act upon that knowledge.
+    The actions committed to by the agent are it's way of interacting with the environment.
+    """
 
-    def __init__(self, game):
-        self.ship_state = {'centre_x': game.ship.centre_x, 'centre_y': game.ship.centre_y,
-                          'velocity_x': game.ship.velocity_x, 'velocity_y': game.ship.velocity_y,
-                          'facing': game.ship.facing, 'thrust': game.ship.thrust,
-                           'turn_speed': game.ship.turn_speed, 'height': game.ship.height}
-        self.asteroid_data = [{'centre_x': asteroid.centre_x, 'centre_y': asteroid.centre_y,
-                               'velocity_x': asteroid.velocity_x, 'velocity_y': asteroid.velocity_y,
-                               'radius': asteroid.radius} for asteroid in game.asteroids]
-        self.particle_data = [{'centre_x': particle.centre_x, 'centre_y': particle.centre_y,
-                               'velocity_x': particle.velocity_x, 'velocity_y': particle.velocity_y}
-                              for particle in game.particles]
-        self.last_action = []
+    def __init__(self, ship: Ship):
+        """
+        Initialise the agents knowledge and associate it with a ship.
+        """
+        self.ship = ship
 
-    def perceive(self, game, reward, game_state):
-        new_ship_state = {'centre_x': game.ship.centre_x, 'centre_y': game.ship.centre_y,
-                           'velocity_x': game.ship.velocity_x, 'velocity_y': game.ship.velocity_y,
-                           'facing': game.ship.facing, 'thrust': game.ship.thrust,
-                           'turn_speed': game.ship.turn_speed, 'height': game.ship.height}
-        new_asteroid_data = [{'centre_x': asteroid.centre_x, 'centre_y': asteroid.centre_y,
-                               'velocity_x': asteroid.velocity_x, 'velocity_y': asteroid.velocity_y,
-                               'radius': asteroid.radius} for asteroid in game.asteroids]
-        new_particle_data = [{'centre_x': particle.centre_x, 'centre_y': particle.centre_y,
-                               'velocity_x': particle.velocity_x, 'velocity_y': particle.velocity_y}
-                              for particle in game.particles]
-        self.remember(self.ship_state, self.asteroid_data, self.particle_data, self.last_action, new_ship_state,
-                      new_asteroid_data, new_particle_data, reward, game_state)
-        self.experience_replay()
+    @abstractmethod
+    def perceive(self, perception: Perception):
+        """
+        Receive a perception of the state of the game and it's entities
 
-    def remember(self, ship_data, asteroid_data, particle_data, last_action, new_ship_data, new_asteroid_data,
-                 new_particle_data, reward, game_state):
-        pass
+        :param perception: The perception received
+        :return: None
+        """
+        raise NotImplementedError
 
-    def experience_replay(self):
-        pass
+    @abstractmethod
+    def decide(self) -> List[Action]:
+        """
+        Decide an action to take at this point in time.
 
-    def decide(self):
-        action = [Action.TURNRIGHT, Action.FIRE]
-        self.last_action = [Action.TURNRIGHT, Action.FIRE]
-        return action
+        :return: The action to take.
+        """
+        raise NotImplementedError
 
-    def new_game(self, game):
-        self.ship_state = {'centre_x': game.ship.centre_x, 'centre_y': game.ship.centre_y,
-                           'velocity_x': game.ship.velocity_x, 'velocity_y': game.ship.velocity_y,
-                           'facing': game.ship.facing, 'thrust': game.ship.thrust,
-                           'turn_speed': game.ship.turn_speed, 'height': game.ship.height}
-        self.asteroid_data = [{'centre_x': asteroid.centre_x, 'centre_y': asteroid.centre_y,
-                               'velocity_x': asteroid.velocity_x, 'velocity_y': asteroid.velocity_y,
-                               'radius': asteroid.radius} for asteroid in game.asteroids]
-        self.particle_data = [{'centre_x': particle.centre_x, 'centre_y': particle.centre_y,
-                               'velocity_x': particle.velocity_x, 'velocity_y': particle.velocity_y}
-                              for particle in game.particles]
-        self.last_action = []
+    def get_ship(self) -> Ship:
+        """
+        :return: The ship the agent is controlling.
+        """
+        return self.ship
