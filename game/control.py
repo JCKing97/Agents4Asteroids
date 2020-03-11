@@ -70,8 +70,7 @@ class Game:
         """ Updates the particles. Not sure why it's not in the game entitiy class. """
         for particle in particles:
             if 0 < particle.centre_x < window.width and 0 < particle.centre_y < window.height:
-                particle.centre_x += particle.velocity_x
-                particle.centre_y += particle.velocity_y
+                particle.update()
                 particle.draw()
             else:
                 particles.remove(particle)
