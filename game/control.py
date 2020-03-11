@@ -23,9 +23,8 @@ class Game:
         Initialise the ship, particles, asteroids (and asteroid creator), state of the game, points and agents.
         :param window: The window to create the entities on.
         """
-        self.ship = Ship(window.width//2, window.height//2)
+        self.ship = Ship(window.width//2, window.height//2, window)
         self.particles = []
-        self.fps_display = pyglet.window.FPSDisplay(window=window)
         self.asteroids = []
         self.asteroid_creator = BackgroundScheduler()
         self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval', seconds=0.5,
@@ -37,7 +36,6 @@ class Game:
 
     def draw(self):
         """ Draws the entities. """
-        self.fps_display.draw()
         if self.ship is not None:
             self.ship.draw()
         for asteroid in self.asteroids:
@@ -54,6 +52,7 @@ class Game:
             self.ship.update(self.window_width, self.window_height)
             self.particles, self.asteroids, self.ship, reward = \
                 self.entity_update(self.window_width, self.window_height, self.particles, self.asteroids, self.ship)
+            self.points += reward
             if self.ship is None:
                 self.game_over()
 
@@ -70,9 +69,7 @@ class Game:
         """ Updates the particles. Not sure why it's not in the game entitiy class. """
         for particle in particles:
             if 0 < particle.centre_x < window.width and 0 < particle.centre_y < window.height:
-                particle.centre_x += particle.velocity_x
-                particle.centre_y += particle.velocity_y
-                particle.draw()
+                particle.update()
             else:
                 particles.remove(particle)
 
@@ -127,7 +124,6 @@ class Game:
                     reward += 1
                     destroyed_asteroid = True
                     destroyed_particles.append(particle)
-                    self.points += 1
             if not destroyed_asteroid:
                 preserved_asteroids.append(asteroid)
                 asteroid.update()
