@@ -70,11 +70,11 @@ class Ship:
         self.turn_state = TurnState.LEFT
 
     def stop_turn(self):
-        """ Changes state if the ship doesn't turn. """
+        """ Stop the ship from turning. """
         self.turn_state = TurnState.STATIONARY
 
     def turn(self):
-        """ Turns the ship according to the FPS. """
+        """ Turns the ship depending on the state of it's turn. """
         if self.turn_state is TurnState.RIGHT:
             self.facing -= self.turn_speed
         elif self.turn_state is TurnState.LEFT:
