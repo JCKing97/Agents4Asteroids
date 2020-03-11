@@ -1,5 +1,7 @@
+from typing import Type
+
 from game.agent import Agent, Action
-from game.perception import VectorPerception
+from game.perception import Perception, VectorPerception
 from game.entities import Ship
 
 
@@ -38,3 +40,7 @@ class DumbAgent(Agent):
         action = [Action.TURNRIGHT, Action.FIRE]
         self.last_action = [Action.TURNRIGHT, Action.FIRE]
         return action
+
+    @staticmethod
+    def get_perception_type() -> Type[Perception]:
+        return VectorPerception

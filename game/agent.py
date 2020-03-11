@@ -2,7 +2,7 @@ from enum import Enum
 from game.perception import Perception
 from game.entities import Ship
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Type
 
 
 class Action(Enum):
@@ -44,6 +44,16 @@ class Agent(ABC):
         Decide an action to take at this point in time.
 
         :return: The action to take.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    def get_perception_type() -> Type[Perception]:
+        """
+        Return the type of perception that this agent can handle.
+
+        :return: The type of perception this agent can handle.
         """
         raise NotImplementedError
 

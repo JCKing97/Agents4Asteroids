@@ -9,10 +9,11 @@ from abc import ABC, abstractmethod
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from game.control import Game, GameState
-from game.agent import Agent, Action
-from game.perception import VectorPerception
+from game.agent import Agent
+from game.entities import Ship
 
 from agents.dumb_agent import DumbAgent
+from agents.user_agent import UserAgent
 
 key = pyglet.window.key
 
@@ -81,6 +82,24 @@ class Screen(ABC):
         """
         raise NotImplementedError
 
+    def on_key_press(self, symbol, modifiers):
+        """
+        Add nothing to the default key press handler.
+
+        :param symbol: The key pressed.
+        :param modifiers: ?
+        """
+        pass
+
+    def on_key_release(self, symbol, modifiers):
+        """
+        Add nothing to the default key release handler.
+
+        :param symbol: The key release.
+        :param modifiers: ?
+        """
+        pass
+
 
 class MenuScreen(Screen):
     """
@@ -96,7 +115,6 @@ class MenuScreen(Screen):
         :param window: The window to draw on.
         :param screen_listener: The listener for changes to the screen.
         """
-
         super().__init__(screen_listener)
 
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
@@ -111,15 +129,6 @@ class MenuScreen(Screen):
         self.stars_runner.add_job(lambda: self.passing_stars(window),
                                   'interval', seconds=0.01, id='display passing stars')
         self.stars_runner.start()
-
-        @window.event
-        def on_key_press(symbol, modifiers):
-            if symbol == key.L:
-                self.stars_runner.pause()
-                self.screen = Player1Screen(window, screen_listener)
-            elif symbol == key.O:
-                self.stars_runner.pause()
-                self.screen = AgentScreen(window, screen_listener)
 
     def draw(self, window):
         """
@@ -166,12 +175,12 @@ class MenuScreen(Screen):
                     self.stars.vertices[i+1] -= window.height//300
 
 
-class AgentScreen(Screen):
+class GameScreen(Screen):
     """
-    If it is chosen that the agent should play the game this class is loaded.
+    Load a game with the specified agents.
     """
 
-    def __init__(self, window, screen_listener: ScreenListener):
+    def __init__(self, window, screen_listener: ScreenListener, agents: List[Agent]):
         """
         Initialise the listener to detect changes in the screen, an agent, the game and key press handler.
 
@@ -179,128 +188,61 @@ class AgentScreen(Screen):
         :param screen_listener: The listener to detect changes in the screen.
         """
         super().__init__(screen_listener)
-        self.game: Game = Game(window)
-        self.agent: Agent = DumbAgent(self.game.ship)
-        self.game.attach(self.agent)
-
-        @window.event
-        def on_key_press(symbol, modifiers):
-            if symbol == key.L:
-                self.screen = Player1Screen(window, screen_listener)
-            elif symbol == key.O:
-                self.screen = AgentScreen(window, screen_listener)
-            elif symbol == key.K:
-                self.screen = MenuScreen(window, screen_listener)
-            elif symbol == key.P:
-                self.game.pause_toggle()
+        self.game: Game = Game(window, agents)
+        self.game.start()
 
     def update(self, window):
         """
-        Run the perceive, decide steps for the agent and then put the decision into action.
+        Update the game.
 
         :param window: The window to draw on.
         """
         if self.game.state is not GameState.OVER:
-            self.agent.perceive(VectorPerception(self.game))
-            self.enact_decision(self.agent.decide())
-            self.game.draw()
+            self.game.update()
         else:
-            self.agent.perceive(self.game)
-            self.game = Game(window)
-            self.agent.new_game(self.game)
-            self.game.attach(self.agent)
-
-    def enact_decision(self, actions: List[Action]):
-        """
-        Enact the decisions made in the game in the order they are given.
-
-        :param actions: The actions to enact.
-        """
-        for action in actions:
-            if action is Action.TURNRIGHT:
-                self.game.ship.turn_right()
-            elif action is Action.TURNLEFT:
-                self.game.ship.turn_left()
-            elif action is Action.STOPTURN:
-                self.game.ship.stop_turn()
-            elif action is Action.BOOST:
-                self.game.ship.boost()
-            elif action is Action.STOPBOOST:
-                self.game.ship.stop_boost()
-            elif action is Action.FIRE:
-                self.game.particles.append(self.game.ship.fire())
+            self.game_over(window)
 
     def draw(self, window):
         """
-        Draw the points.
-        TODO: Implement everything on this.
+        Draw the points and game, update the screen if necessary.
 
         :param window: The window to draw on.
         """
-        pyglet.text.Label("Agent Points: " + str(self.agent.points), font_name="Arial", font_size=12,
+        pyglet.text.Label("Points: " + str(self.game.points), font_name="Arial", font_size=12,
                           x=0, y=window.height,
                           anchor_x="left", anchor_y="top").draw()
+        if self.game.state is not GameState.OVER:
+            self.game.draw()
+        else:
+            self.game_over(window)
 
-
-class Player1Screen(Screen):
-    """
-    The screen for when playing a one player game. Capture the key presses to direct the ship.
-    """
-
-    def __init__(self, window, screen_listener):
+    def game_over(self, window):
         """
-        Register handlers for when redrawing the window and key presses. Initialise the game.
-
-        :param window: The window to get the drawing mechanism and key presses from.
-        """
-        super().__init__(screen_listener)
-        self.game = Game(window)
-        self.game.start()
-
-        @window.event
-        def on_key_press(symbol, modifiers):
-            if symbol == key.L:
-                self.screen = Player1Screen(window, screen_listener)
-            elif symbol == key.O:
-                self.screen = AgentScreen(window, screen_listener)
-            elif symbol == key.K:
-                self.screen = MenuScreen(window, screen_listener)
-            elif symbol == key.P:
-                self.game.pause_toggle()
-            elif self.game.state is GameState.INPLAY and symbol == key.W:
-                self.game.ship.boost()
-            elif self.game.state is GameState.INPLAY and symbol == key.D:
-                self.game.ship.turn_right()
-            elif self.game.state is GameState.INPLAY and symbol == key.A:
-                self.game.ship.turn_left()
-            elif self.game.state is GameState.INPLAY and symbol == key.SPACE:
-                self.game.particles.append(self.game.ship.fire())
-
-        @window.event
-        def on_key_release(symbol, modifiers):
-            if (self.game.state is GameState.INPLAY or self.game.state is GameState.PAUSED)\
-                    and (symbol == key.A or symbol == key.D):
-                self.game.ship.stop_turn()
-            if (self.game.state is GameState.INPLAY or self.game.state is GameState.PAUSED) and symbol == key.W:
-                self.game.ship.stop_boost()
-
-    def draw(self, window):
-        """
-        Draw the game.
+        Change the screen to go to game over.
 
         :param window: The window to draw on.
         """
-        self.game.draw()
+        self.screen = GameOverScreen(window, self.screen_listener, self.game.points)
 
-    def update(self, window):
+    def on_key_press(self, symbol, modifiers):
         """
-        Update the game and detect if game over.
+        Pause if P is pressed and delegate presses to the game.
 
-        :param window: The window to draw on.
+        :param symbol: The key pressed.
+        :param modifiers: ?
         """
-        if self.game.state is GameState.OVER:
-            self.screen = GameOverScreen(window, self.screen_listener, self.game.points)
-        self.game.update()
+        if symbol == key.P:
+            self.game.pause_toggle()
+        self.game.on_key_press(symbol, modifiers)
+
+    def on_key_release(self, symbol, modifiers):
+        """
+        Delegate releases to the game.
+
+        :param symbol: The key released.
+        :param modifiers: ?
+        """
+        self.game.on_key_release(symbol, modifiers)
 
 
 class GameOverScreen(Screen):
@@ -318,15 +260,6 @@ class GameOverScreen(Screen):
         """
         super().__init__(screen_listener)
         self.points = points
-
-        @window.event
-        def on_key_press(symbol, modifiers):
-            if symbol == key.L:
-                self.screen = Player1Screen(window, screen_listener)
-            elif symbol == key.K:
-                self.screen = MenuScreen(window, screen_listener)
-            elif symbol == key.O:
-                self.screen = AgentScreen(window, screen_listener)
 
     def draw(self, window):
         """
@@ -363,6 +296,24 @@ class Controller(ScreenListener):
         @self.window.event
         def on_draw():
             self.clear_update_draw(self.window)
+
+        @self.window.event
+        def on_key_press(symbol, modifiers):
+            if symbol == key.L:
+                self.screen = GameScreen(self.window, self,
+                                         [UserAgent(Ship(self.window.width // 2, self.window.height // 2,
+                                                         self.window), self.window)])
+            elif symbol == key.O:
+                self.screen = GameScreen(self.window, self,
+                                         [DumbAgent(Ship(self.window.width // 2, self.window.height // 2,
+                                                         self.window))])
+            elif symbol == key.K:
+                self.screen = MenuScreen(self.window, self)
+            self.screen.on_key_press(symbol, modifiers)
+
+        @self.window.event
+        def on_key_release(symbol, modifiers):
+            self.screen.on_key_release(symbol, modifiers)
 
         pyglet.clock.schedule(lambda dt: 1 / 60)
         pyglet.app.run()

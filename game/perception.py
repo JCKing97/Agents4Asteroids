@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import List
 
-from game.control import Game
+from game.entities import Ship, Particle, Asteroid
 
 
 class Perception(ABC):
@@ -9,12 +10,15 @@ class Perception(ABC):
     """
 
     @abstractmethod
-    def __init__(self, game: Game=None):
+    def __init__(self, ship: Ship=None, particles: List[Particle]=None, asteroids: List[Asteroid]=None,
+                 other_ships: List[Ship]=None):
         """
-        Record the perception data from the game.
+        Initialise relevant data.
 
-        :param game: The game to record the perception data from.
-        :type game: Game
+        :param ship: The ship this perception is from.
+        :param particles: The particles in the game.
+        :param asteroids: The asteroids in the game.
+        :param other_ships: The other ships in the game.
         """
         pass
 
@@ -34,23 +38,25 @@ class VectorPerception(Perception):
     Representation of velocities, position etc. are given as vectors.
     """
 
-    def __init__(self, game: Game):
+    def __init__(self, ship: Ship, particles: List[Particle], asteroids: List[Asteroid], other_ships: List[Ship]):
         """
         Record the state of the ship, asteroid and particle at time of creation in a dictionary.
 
-        :param game: The game to record the perception data from.
-        :type game: Game
+        :param ship: The ship this perception is from.
+        :param particles: The particles in the game.
+        :param asteroids: The asteroids in the game.
+        :param other_ships: The other ships in the game.
         """
-        self.ship_state = {'centre_x': game.ship.centre_x, 'centre_y': game.ship.centre_y,
-                           'velocity_x': game.ship.velocity_x, 'velocity_y': game.ship.velocity_y,
-                           'facing': game.ship.facing, 'thrust': game.ship.thrust,
-                           'turn_speed': game.ship.turn_speed, 'height': game.ship.height}
+        self.ship_state = {'centre_x': ship.centre_x, 'centre_y': ship.centre_y,
+                           'velocity_x': ship.velocity_x, 'velocity_y': ship.velocity_y,
+                           'facing': ship.facing, 'thrust': ship.thrust,
+                           'turn_speed': ship.turn_speed, 'height': ship.height}
         self.asteroid_data = [{'centre_x': asteroid.centre_x, 'centre_y': asteroid.centre_y,
                                'velocity_x': asteroid.velocity_x, 'velocity_y': asteroid.velocity_y,
-                               'radius': asteroid.radius} for asteroid in game.asteroids]
+                               'radius': asteroid.radius} for asteroid in asteroids]
         self.particle_data = [{'centre_x': particle.centre_x, 'centre_y': particle.centre_y,
                                'velocity_x': particle.velocity_x, 'velocity_y': particle.velocity_y}
-                              for particle in game.particles]
+                              for particle in particles]
         super().__init__()
 
     def get_perception_data(self):
@@ -73,3 +79,25 @@ class VectorPerception(Perception):
                 ]
         """
         return self.ship_state, self.asteroid_data, self.particle_data
+
+
+class NoPerception(Perception):
+
+    def __init__(self, ship: Ship, particles: List[Particle], asteroids: List[Asteroid], other_ships: List[Ship]):
+        """
+        Initialise nothing.
+
+        :param ship: The ship this perception is from.
+        :param particles: The particles in the game.
+        :param asteroids: The asteroids in the game.
+        :param other_ships: The other ships in the game.
+        """
+        super().__init__()
+
+    def get_perception_data(self):
+        """
+        Give no percepts.
+
+        :return: None
+        """
+        pass
