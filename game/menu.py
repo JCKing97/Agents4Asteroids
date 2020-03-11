@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from typing import List
+
 import pyglet
 import random
 from abc import ABC, abstractmethod
@@ -87,6 +90,13 @@ class MenuScreen(Screen):
     """
 
     def __init__(self, window, screen_listener: ScreenListener):
+        """
+        Initialise the stars, screen listener, title, instructions and key press detection.
+
+        :param window: The window to draw on.
+        :param screen_listener: The listener for changes to the screen.
+        """
+
         super().__init__(screen_listener)
 
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
@@ -112,6 +122,11 @@ class MenuScreen(Screen):
                 self.screen = AgentScreen(window, screen_listener)
 
     def draw(self, window):
+        """
+        Draw the stars, title and instructions on the window.
+
+        :param window: The window to draw on.
+        """
         self.stars.draw(pyglet.graphics.GL_POINTS)
         self.label.draw()
         pyglet.text.Label("L to Launch, P to Pause, K to Quit", font_name="Arial", font_size=12,
@@ -121,6 +136,11 @@ class MenuScreen(Screen):
                           anchor_x="center", anchor_y="top").draw()
 
     def update(self, window):
+        """
+        Update the position of the stars.
+
+        :param window: The window to draw the stars on.
+        """
         self.passing_stars(window)
 
     def passing_stars(self, window):
@@ -152,6 +172,12 @@ class AgentScreen(Screen):
     """
 
     def __init__(self, window, screen_listener: ScreenListener):
+        """
+        Initialise the listener to detect changes in the screen, an agent, the game and key press handler.
+
+        :param window: The window to draw on.
+        :param screen_listener: The listener to detect changes in the screen.
+        """
         super().__init__(screen_listener)
         self.game: Game = Game(window)
         self.agent: Agent = DumbAgent(self.game.ship)
@@ -169,22 +195,14 @@ class AgentScreen(Screen):
                 self.game.pause_toggle()
 
     def update(self, window):
+        """
+        Run the perceive, decide steps for the agent and then put the decision into action.
+
+        :param window: The window to draw on.
+        """
         if self.game.state is not GameState.OVER:
             self.agent.perceive(VectorPerception(self.game))
-            actions = self.agent.decide()
-            for action in actions:
-                if action is Action.TURNRIGHT:
-                    self.game.ship.turn_right()
-                elif action is Action.TURNLEFT:
-                    self.game.ship.turn_left()
-                elif action is Action.STOPTURN:
-                    self.game.ship.stop_turn()
-                elif action is Action.BOOST:
-                    self.game.ship.boost()
-                elif action is Action.STOPBOOST:
-                    self.game.ship.stop_boost()
-                elif action is Action.FIRE:
-                    self.game.particles.append(self.game.ship.fire())
+            self.enact_decision(self.agent.decide())
             self.game.draw()
         else:
             self.agent.perceive(self.game)
@@ -192,7 +210,33 @@ class AgentScreen(Screen):
             self.agent.new_game(self.game)
             self.game.attach(self.agent)
 
+    def enact_decision(self, actions: List[Action]):
+        """
+        Enact the decisions made in the game in the order they are given.
+
+        :param actions: The actions to enact.
+        """
+        for action in actions:
+            if action is Action.TURNRIGHT:
+                self.game.ship.turn_right()
+            elif action is Action.TURNLEFT:
+                self.game.ship.turn_left()
+            elif action is Action.STOPTURN:
+                self.game.ship.stop_turn()
+            elif action is Action.BOOST:
+                self.game.ship.boost()
+            elif action is Action.STOPBOOST:
+                self.game.ship.stop_boost()
+            elif action is Action.FIRE:
+                self.game.particles.append(self.game.ship.fire())
+
     def draw(self, window):
+        """
+        Draw the points.
+        TODO: Implement everything on this.
+
+        :param window: The window to draw on.
+        """
         pyglet.text.Label("Agent Points: " + str(self.agent.points), font_name="Arial", font_size=12,
                           x=0, y=window.height,
                           anchor_x="left", anchor_y="top").draw()
@@ -241,9 +285,19 @@ class Player1Screen(Screen):
                 self.game.ship.stop_boost()
 
     def draw(self, window):
+        """
+        Draw the game.
+
+        :param window: The window to draw on.
+        """
         self.game.draw()
 
     def update(self, window):
+        """
+        Update the game and detect if game over.
+
+        :param window: The window to draw on.
+        """
         if self.game.state is GameState.OVER:
             self.screen = GameOverScreen(window, self.screen_listener, self.game.points)
         self.game.update()
@@ -255,6 +309,13 @@ class GameOverScreen(Screen):
     """
 
     def __init__(self, window, screen_listener, points):
+        """
+        Initialise the screen listener to detect screen changes and the display title and points.
+
+        :param window: The window to draw on.
+        :param screen_listener: The listener to listen for changes in the screen.
+        :param points: The points to display.
+        """
         super().__init__(screen_listener)
         self.points = points
 
@@ -268,6 +329,11 @@ class GameOverScreen(Screen):
                 self.screen = AgentScreen(window, screen_listener)
 
     def draw(self, window):
+        """
+        Draw the game over title, the points and instructions.
+
+        :param window: The window to draw on.
+        """
         pyglet.text.Label("Game Over", font_name="Arial", font_size=36,
                           x=(window.width // 2) - 10, y=3 * (window.height // 4) - 10,
                           anchor_x="center", anchor_y="center").draw()
@@ -278,6 +344,11 @@ class GameOverScreen(Screen):
                           x=window.width // 2, y=window.height // 2, anchor_x="center", anchor_y="top").draw()
 
     def update(self, window):
+        """
+        Do not update.
+
+        :param window: The window to draw on.
+        """
         pass
 
 
