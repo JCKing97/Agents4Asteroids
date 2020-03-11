@@ -140,7 +140,9 @@ class Ship:
 
 class Asteroid:
     """ Handles how the asteroids are being drawn and their velocity and positioning. """
+
     def __init__(self, centre_x, centre_y, velocity_x, velocity_y, size):
+        """ Initialise the velocity, position and shape of the asteroid. """
         self.centre_x = centre_x
         self.centre_y = centre_y
         self.velocity_x = velocity_x
@@ -155,10 +157,12 @@ class Asteroid:
                                * sin(i*((2 * pi)/self.num_of_points)))
 
     def update(self):
+        """ Update the position of the asteroid. """
         self.centre_x += self.velocity_x
         self.centre_y += self.velocity_y
 
     def draw(self):
+        """ Draw the points of the asteroid and link the points. """
         current_points = []
         for i in range(0, self.num_of_points*2, 2):
             current_points.append(int(self.centre_x + self.points[i]))
