@@ -2,6 +2,7 @@ import pyglet
 import random
 from enum import Enum
 from math import cos, sin, pi
+from abc import ABC
 
 
 class TurnState(Enum):
@@ -57,9 +58,9 @@ class Ship:
         self.turn_state = TurnState.STATIONARY
         self.boost_state = BoostState.STATIONARY
         self.thrust = 0
-        self.thrust_max = 2
-        self.thrust_incr = 0.4
-        self.particle_canon_speed = 20
+        self.thrust_max = 0.2
+        self.thrust_incr = 0.02
+        self.particle_canon_speed = 15
 
     def turn_right(self):
         """ Changes the state of the ship to turn right. """
@@ -100,7 +101,7 @@ class Ship:
     def velocity_handler(self):
         """
         Changes the value of the velocity of the ship in x and y axis.
-        If the ship is already in the BOOSTING state it will create a higher trust.
+        If the ship is already in the BOOSTING state it will create a higher thrust.
         """
         if self.boost_state is BoostState.BOOSTING:
             if self.thrust < self.thrust_max:

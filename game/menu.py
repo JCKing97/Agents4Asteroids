@@ -1,6 +1,7 @@
+from __future__ import annotations
 import pyglet
 import random
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -11,18 +12,69 @@ from game.perception import VectorPerception
 key = pyglet.window.key
 
 
-class Screen(ABC):
+class ScreenListener(ABC):
+    """ A base class to be implemented by anything that listens for screen changes. """
 
-    def __init__(self, screen_listener):
-        self.screen_listener = screen_listener
+    @abstractmethod
+    def notify(self, screen):
+        """
+        Notify a change in screen to the screen param.
+
+        :param screen: The new screen to switch to.
+        """
+        raise NotImplementedError
+
+
+class Screen(ABC):
+    """
+    A base class to be implemented by any screen used by the Controller.
+    """
+
+    def __init__(self, screen_listener: ScreenListener):
+        """
+        Set the listener to notify when changes to the screen being used are required.
+
+        :param screen_listener:
+        """
+        self.screen_listener: ScreenListener = screen_listener
 
     @property
-    def screen(self):
+    def screen(self) -> Screen:
+        """
+        The screen to be used.
+
+        :return: The screen
+        :rtype: Screen
+        """
         return self
 
     @screen.setter
-    def screen(self, to_set):
-        self.screen_listener.set_screen(to_set)
+    def screen(self, to_set: Screen):
+        """
+        Notify the listener that the screen has changed, so it can update and draw with the new screen.
+
+        :param to_set: The screen to switch to.
+        :return: None
+        """
+        self.screen_listener.notify(to_set)
+
+    @abstractmethod
+    def draw(self, window):
+        """
+        Draw the screens contents onto the window.
+
+        :param window: The window to draw the contents onto.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(self, window):
+        """
+        Update the state of the screen based on the window.
+
+        :param window: The window to update contents based on.
+        """
+        raise NotImplementedError
 
 
 class MenuScreen(Screen):
@@ -34,10 +86,11 @@ class MenuScreen(Screen):
 
     def __init__(self, window, screen_listener):
         super().__init__(screen_listener)
+
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
                                        x=(window.width // 2) - 10, y=3*(window.height // 4) - 10,
                                        anchor_x="center", anchor_y="center")
-        self.fps_display = pyglet.window.FPSDisplay(window=window)
+
         initial_stars = tuple([random.randint(0, window.width) if i % 2 == 0 else
                                random.randint(0, window.height) for i in range(0, 40)])
         self.stars = pyglet.graphics.vertex_list(len(initial_stars)//2, ('v2i', initial_stars))
@@ -59,7 +112,6 @@ class MenuScreen(Screen):
     def draw(self, window):
         self.stars.draw(pyglet.graphics.GL_POINTS)
         self.label.draw()
-        self.fps_display.draw()
         pyglet.text.Label("L to Launch, P to Pause, K to Quit", font_name="Arial", font_size=12,
                           x=window.width // 2, y=window.height // 2, anchor_x="center", anchor_y="bottom").draw()
         pyglet.text.Label("W to Boost, D and A to turn and Space to Shoot", font_name="Arial", font_size=12,
@@ -191,7 +243,7 @@ class Player1Screen(Screen):
 
     def update(self, window):
         if self.game.state is GameState.OVER:
-            window.screen = GameOverScreen(window, self.screen_listener, self.game.points)
+            self.screen = GameOverScreen(window, self.screen_listener, self.game.points)
         self.game.update()
 
 
@@ -202,7 +254,6 @@ class GameOverScreen(Screen):
 
     def __init__(self, window, screen_listener, points):
         super().__init__(screen_listener)
-        self.fps_display = pyglet.clock.ClockDisplay()
         self.points = points
 
         @window.event
@@ -215,7 +266,6 @@ class GameOverScreen(Screen):
                 self.screen = AgentScreen(window, screen_listener)
 
     def draw(self, window):
-        self.fps_display.draw()
         pyglet.text.Label("Game Over", font_name="Arial", font_size=36,
                           x=(window.width // 2) - 10, y=3 * (window.height // 4) - 10,
                           anchor_x="center", anchor_y="center").draw()
@@ -229,7 +279,7 @@ class GameOverScreen(Screen):
         pass
 
 
-class Controller:
+class Controller(ScreenListener):
     """
     Starts the program, controls the screens on show.
     """
@@ -255,11 +305,10 @@ class Controller:
         self.screen.update(window)
         self.screen.draw(window)
 
-    def set_screen(self, screen_to_set):
+    def notify(self, screen):
         """
         Set the current screen to screen_to_set.
 
-        :param screen_to_set: The new screen to  be the current one.
-        :return: None
+        :param screen: The new screen to  be the current one.
         """
-        self.screen = screen_to_set
+        self.screen = screen

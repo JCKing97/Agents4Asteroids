@@ -38,7 +38,8 @@ class Game:
     def draw(self):
         """ Draws the entities. """
         self.fps_display.draw()
-        self.ship.draw()
+        if self.ship is not None:
+            self.ship.draw()
         for asteroid in self.asteroids:
             asteroid.draw()
         for particle in self.particles:
