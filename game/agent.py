@@ -62,3 +62,21 @@ class Agent(ABC):
         :return: The ship the agent is controlling.
         """
         return self.ship
+
+    def on_key_press(self, symbol, modifiers):
+        """
+        Handle key press.
+
+        :param symbol: The key pressed.
+        :param modifiers: ?
+        """
+        pass
+
+    def on_key_release(self, symbol, modifiers):
+        """
+        Handle key press.
+
+        :param symbol: The key pressed.
+        :param modifiers: ?
+        """
+        pass

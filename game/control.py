@@ -6,7 +6,6 @@ from typing import List, Tuple
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from agents.user_agent import UserAgent
 from game.entities import Asteroid, Particle
 from game.agent import Agent, Action
 
@@ -248,8 +247,7 @@ class Game:
         :param modifiers: ?
         """
         for agent in self.agents:
-            if hasattr(agent, "on_key_press"):
-                agent.on_key_press(symbol, modifiers)
+            agent.on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol, modifiers):
         """
@@ -259,5 +257,4 @@ class Game:
         :param modifiers: ?
         """
         for agent in self.agents:
-            if hasattr(agent, "on_key_release"):
-                agent.on_key_release(symbol, modifiers)
+            agent.on_key_release(symbol, modifiers)
