@@ -135,27 +135,26 @@ class Game:
                 preserved_particles.append(particle)
         return preserved_particles, preserved_asteroids, preserved_agents, reward
 
-    def enact_decision(self, agent: Agent, decision: List[Action]):
+    def enact_decision(self, agent: Agent, decision: Action):
         """
         Enact the decisions made by the agent in the order they are given.
 
         :param agent: The agent that is carrying out the action
-        :param decision: The actions to enact.
+        :param decision: The action to enact.
         """
         agent_ship = agent.get_ship()
-        for action in decision:
-            if action is Action.TURNRIGHT:
-                agent_ship.turn_right()
-            elif action is Action.TURNLEFT:
-                agent_ship.turn_left()
-            elif action is Action.STOPTURN:
-                agent_ship.stop_turn()
-            elif action is Action.BOOST:
-                agent_ship.boost()
-            elif action is Action.STOPBOOST:
-                agent_ship.stop_boost()
-            elif action is Action.FIRE:
-                self.particles.append(agent_ship.fire())
+        if decision is Action.TURNRIGHT:
+            agent_ship.turn_right()
+        elif decision is Action.TURNLEFT:
+            agent_ship.turn_left()
+        elif decision is Action.STOPTURN:
+            agent_ship.stop_turn()
+        elif decision is Action.BOOST:
+            agent_ship.boost()
+        elif decision is Action.STOPBOOST:
+            agent_ship.stop_boost()
+        elif decision is Action.FIRE:
+            self.particles.append(agent_ship.fire())
 
     def intersecting_ship(self, asteroid, ship):
         """ Calculates the collision detection between the ship and asteroids. """

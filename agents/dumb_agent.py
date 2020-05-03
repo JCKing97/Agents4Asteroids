@@ -14,8 +14,8 @@ class DumbAgent(Agent):
         """
         Initialise the agents knowledge.
         """
-        self.last_action = []
-        self.points = 0
+        self.actions = [Action.TURNRIGHT, Action.FIRE]
+        self.current_action = 0
         super().__init__(ship)
 
     def perceive(self, perception: VectorPerception):
@@ -25,21 +25,11 @@ class DumbAgent(Agent):
         :param perception: The perception received
         :return: None
         """
-        self.ship_state, self.asteroid_data, self.particle_data = perception.get_perception_data()
+        pass
 
-    def receive_reward(self, reward: int) -> None:
-        """
-        Receive feedback in terms of an integer.
-
-        :param reward: The reward the agent is receiving.
-        :return: None
-        """
-        self.points += reward
-
-    def decide(self):
-        action = [Action.TURNRIGHT, Action.FIRE]
-        self.last_action = [Action.TURNRIGHT, Action.FIRE]
-        return action
+    def decide(self) -> Action:
+        self.current_action = (self.current_action + 1) % len(self.actions)
+        return self.actions[self.current_action]
 
     @staticmethod
     def get_perception_type() -> Type[Perception]:

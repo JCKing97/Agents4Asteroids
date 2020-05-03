@@ -90,12 +90,6 @@ class Screen(ABC):
         """
         pass
 
-    def kill_screen(self):
-        """
-        End any running jobs on the screen.
-        """
-        pass
-
     def on_key_release(self, symbol, modifiers):
         """
         Add nothing to the default key release handler.
@@ -131,11 +125,6 @@ class MenuScreen(Screen):
                                random.randint(0, window.height) for i in range(0, 40)])
         self.stars = pyglet.graphics.vertex_list(len(initial_stars)//2, ('v2i', initial_stars))
 
-        self.stars_runner = BackgroundScheduler()
-        self.stars_runner.add_job(lambda: self.passing_stars(window),
-                                  'interval', seconds=0.01, id='display passing stars')
-        self.stars_runner.start()
-
         self.agents: List[Type[Agent]] = load_agents()
         self.agent_selector_current = 0
 
@@ -147,7 +136,6 @@ class MenuScreen(Screen):
             if self.agent_selector_current < 0:
                 self.agent_selector_current = len(self.agents) - 1
         elif symbol == key.L:
-            self.kill_screen()
             agent = self.agents[self.agent_selector_current](
                 Ship(self.window.width // 2, self.window.height // 2, self.window)
             )
@@ -199,9 +187,6 @@ class MenuScreen(Screen):
                     self.stars.vertices[i+1] += window.height//300
                 else:
                     self.stars.vertices[i+1] -= window.height//300
-
-    def kill_screen(self):
-        self.stars_runner.remove_all_jobs()
 
 
 class GameScreen(Screen):
@@ -329,7 +314,6 @@ class Controller(ScreenListener):
         @self.window.event
         def on_key_press(symbol, modifiers):
             if symbol == key.K:
-                self.screen.kill_screen()
                 self.screen = MenuScreen(self.window, self)
             self.screen.on_key_press(symbol, modifiers)
 

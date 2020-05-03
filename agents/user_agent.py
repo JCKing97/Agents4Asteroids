@@ -23,10 +23,11 @@ class UserAgent(Agent):
     def perceive(self, perception: NoPerception):
         pass
 
-    def decide(self) -> List[Action]:
-        actions = self.actions
-        self.actions = []
-        return actions
+    def decide(self) -> Action:
+        if len(self.actions) > 0:
+            return self.actions.pop(0)
+        else:
+            return Action.NOACTION
 
     def add_action(self, action: Action):
         self.actions.append(action)
