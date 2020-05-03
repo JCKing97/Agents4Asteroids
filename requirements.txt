@@ -1,6 +1,7 @@
 APScheduler==3.6.1
 future==0.17.1
-pyglet==1.4.1
+pyglet==1.5.0
 pytz==2019.1
 six==1.12.0
 tzlocal==2.0.0
+pytest==5.4.1

@@ -1,8 +1,8 @@
 from enum import Enum
-from game.perception import Perception
+from game.perception import Perception, NoPerception
 from game.entities import Ship
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Type
 
 
 class Action(Enum):
@@ -13,6 +13,7 @@ class Action(Enum):
     TURNLEFT = 4
     STOPTURN = 5
     FIRE = 6
+    NOACTION = 7
 
 
 class Agent(ABC):
@@ -28,7 +29,6 @@ class Agent(ABC):
         """
         self.ship = ship
 
-    @abstractmethod
     def perceive(self, perception: Perception):
         """
         Receive a perception of the state of the game and it's entities
@@ -36,10 +36,10 @@ class Agent(ABC):
         :param perception: The perception received
         :return: None
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
-    def decide(self) -> List[Action]:
+    def decide(self) -> Action:
         """
         Decide an action to take at this point in time.
 
@@ -47,8 +47,35 @@ class Agent(ABC):
         """
         raise NotImplementedError
 
+    @staticmethod
+    def get_perception_type() -> Type[Perception]:
+        """
+        Return the type of perception that this agent can handle.
+
+        :return: The type of perception this agent can handle.
+        """
+        return NoPerception
+
     def get_ship(self) -> Ship:
         """
         :return: The ship the agent is controlling.
         """
         return self.ship
+
+    def on_key_press(self, symbol, modifiers):
+        """
+        Handle key press.
+
+        :param symbol: The key pressed.
+        :param modifiers: ?
+        """
+        pass
+
+    def on_key_release(self, symbol, modifiers):
+        """
+        Handle key press.
+
+        :param symbol: The key pressed.
+        :param modifiers: ?
+        """
+        pass
