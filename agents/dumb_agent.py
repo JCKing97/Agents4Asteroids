@@ -18,15 +18,6 @@ class DumbAgent(Agent):
         self.current_action = 0
         super().__init__(ship)
 
-    def perceive(self, perception: VectorPerception):
-        """
-        Receive a perception of the state of the game and it's entities
-
-        :param perception: The perception received
-        :return: None
-        """
-        pass
-
     def decide(self) -> Action:
         self.current_action = (self.current_action + 1) % len(self.actions)
         return self.actions[self.current_action]
