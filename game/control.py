@@ -3,6 +3,7 @@ import random
 from enum import Enum
 from math import cos, sin, sqrt
 from typing import List, Tuple
+from time import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -27,13 +28,16 @@ class Game:
         Initialise the agents, particles, asteroids (and asteroid creator), state of the game, points and agents.
         :param window: The window to create the entities on.
         """
+        self.window = window
         self.agents: List[Agent] = agents
         self.particles: List[Particle] = []
         self.asteroids: List[Asteroid] = []
 
         self.asteroid_creator = BackgroundScheduler()
-        self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval', seconds=0.5,
-                                      id='asteroid generator')
+        self.seconds_between_asteroid_generation = 0.5
+        self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval',
+                                      seconds=self.seconds_between_asteroid_generation, id='asteroid generator')
+        self.last_asteroid_update_time = time()
 
         self.state: GameState = GameState.INPLAY
         self.window_width: int = window.width
@@ -57,6 +61,12 @@ class Game:
             self.points += reward
             if not self.agents:
                 self.game_over()
+        if time() - self.last_asteroid_update_time > 5 and self.seconds_between_asteroid_generation > 0.01:
+            self.last_asteroid_update_time = time()
+            self.asteroid_creator.remove_all_jobs()
+            self.seconds_between_asteroid_generation /= 2
+            self.asteroid_creator.add_job(lambda: self.asteroid_generate(self.window), 'interval',
+                                          seconds=self.seconds_between_asteroid_generation, id='asteroid generator')
 
     def pause_toggle(self):
         """ Sets the game state from INPLAY to PAUSED and vice versa. """
