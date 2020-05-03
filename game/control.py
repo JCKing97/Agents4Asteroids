@@ -43,9 +43,7 @@ class Game:
     def draw(self):
         """ Draws the entities. """
         for agent in self.agents:
-            agent_ship = agent.get_ship()
-            if agent_ship is not None:
-                agent_ship.draw()
+            agent.draw()
         for asteroid in self.asteroids:
             asteroid.draw()
         for particle in self.particles:

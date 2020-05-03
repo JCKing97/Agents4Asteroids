@@ -3,6 +3,9 @@ from game.perception import Perception, NoPerception
 from game.entities import Ship
 from abc import ABC, abstractmethod
 from typing import Type
+from math import cos, sin
+import pyglet
+from game.physics import line
 
 
 class Action(Enum):
@@ -37,6 +40,12 @@ class Agent(ABC):
         :return: None
         """
         pass
+
+    def draw(self):
+        """
+        Draw the agent
+        """
+        self.ship.draw()
 
     @abstractmethod
     def decide(self) -> Action:

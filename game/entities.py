@@ -3,6 +3,7 @@ import random
 from enum import Enum
 from math import cos, sin, pi
 from abc import ABC, abstractmethod
+from game.physics import line
 
 
 class TurnState(Enum):
@@ -151,10 +152,11 @@ class Ship(Entity):
 
     def draw(self):
         """ Redraw the ship at the 'new' location. """
+        point_x = int(self.centre_x + (2 * self.height * cos(self.facing)))
+        point_y = int(self.centre_y + (2 * self.height * sin(self.facing)))
         pyglet.graphics.draw_indexed(3, pyglet.gl.GL_LINE_LOOP,
                                      [0, 1, 2],
-                                     ('v2i', (int(self.centre_x + (2 * self.height * cos(self.facing))),
-                                              int(self.centre_y + (2 * self.height * sin(self.facing))),
+                                     ('v2i', (point_x, point_y,
                                               int(self.centre_x + (self.height * cos(self.facing + 140))),
                                               int(self.centre_y + (self.height * sin(self.facing + 140))),
                                               int(self.centre_x + (self.height * cos(self.facing - 140))),
