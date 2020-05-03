@@ -97,8 +97,12 @@ class Ship(Entity):
         """ Turns the ship depending on the state of it's turn. """
         if self.turn_state is TurnState.RIGHT:
             self.facing -= self.turn_speed
+            if self.facing < 0:
+                self.facing = 2 * pi
         elif self.turn_state is TurnState.LEFT:
             self.facing += self.turn_speed
+            if self.facing > 2 * pi:
+                self.facing = 0
 
     def boost(self):
         """ Start the ship booster. """
