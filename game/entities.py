@@ -3,7 +3,6 @@ import random
 from enum import Enum
 from math import cos, sin, pi
 from abc import ABC, abstractmethod
-from game.physics import line
 
 
 class TurnState(Enum):

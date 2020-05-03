@@ -3,9 +3,6 @@ from game.perception import Perception, NoPerception
 from game.entities import Ship
 from abc import ABC, abstractmethod
 from typing import Type
-from math import cos, sin
-import pyglet
-from game.physics import line
 
 
 class Action(Enum):
