@@ -37,7 +37,7 @@ class Game:
         self.seconds_between_asteroid_generation = 0.5
         self.asteroid_creator.add_job(lambda: self.asteroid_generate(window), 'interval',
                                       seconds=self.seconds_between_asteroid_generation, id='asteroid generator')
-        self.last_asteroid_update_time = time()
+        self.level = 1
 
         self.state: GameState = GameState.INPLAY
         self.window_width: int = window.width
@@ -61,10 +61,10 @@ class Game:
             self.points += reward
             if not self.agents:
                 self.game_over()
-        if time() - self.last_asteroid_update_time > 5 and self.seconds_between_asteroid_generation > 0.01:
-            self.last_asteroid_update_time = time()
+        if self.points / 5 > self.level and self.seconds_between_asteroid_generation > 0.01:
+            self.level += 1
             self.asteroid_creator.remove_all_jobs()
-            self.seconds_between_asteroid_generation /= 2
+            self.seconds_between_asteroid_generation /= 1.25
             self.asteroid_creator.add_job(lambda: self.asteroid_generate(self.window), 'interval',
                                           seconds=self.seconds_between_asteroid_generation, id='asteroid generator')
 

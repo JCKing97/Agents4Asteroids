@@ -287,7 +287,7 @@ class GameOverScreen(Screen):
         pyglet.text.Label("Points: " + str(self.points), font_name="Arial", font_size=12,
                           x=window.width // 2, y=window.height // 2,
                           anchor_x="center", anchor_y="bottom").draw()
-        pyglet.text.Label("L to Launch again, K to Quit", font_name="Arial", font_size=12,
+        pyglet.text.Label("K to Quit to menu", font_name="Arial", font_size=12,
                           x=window.width // 2, y=window.height // 2, anchor_x="center", anchor_y="top").draw()
 
     def update(self, window):
