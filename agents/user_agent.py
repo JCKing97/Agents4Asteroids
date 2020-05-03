@@ -12,7 +12,7 @@ class UserAgent(Agent):
     An agent that is an actual user.
     """
 
-    def __init__(self, ship: Ship, window):
+    def __init__(self, ship: Ship):
         super().__init__(ship)
         self.actions = []
 

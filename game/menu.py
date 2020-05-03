@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Type
 
 import pyglet
 import random
@@ -12,8 +12,7 @@ from game.control import Game, GameState
 from game.agent import Agent
 from game.entities import Ship
 
-from agents.dumb_agent import DumbAgent
-from agents.user_agent import UserAgent
+from agents.agent_loader import load_agents
 
 key = pyglet.window.key
 
@@ -115,6 +114,7 @@ class MenuScreen(Screen):
         :param window: The window to draw on.
         :param screen_listener: The listener for changes to the screen.
         """
+        self.window = window
         super().__init__(screen_listener)
 
         self.label = pyglet.text.Label("Welcome to Asteroids", font_name="Arial", font_size=36,
@@ -130,6 +130,23 @@ class MenuScreen(Screen):
                                   'interval', seconds=0.01, id='display passing stars')
         self.stars_runner.start()
 
+        self.agents: List[Type[Agent]] = load_agents()
+        self.agent_selector_current = 0
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == key.RIGHT:
+            self.agent_selector_current = (self.agent_selector_current + 1) % len(self.agents)
+            print(self.agent_selector_current)
+        elif symbol == key.LEFT:
+            self.agent_selector_current = (self.agent_selector_current - 1) % len(self.agents)
+            if self.agent_selector_current < 0:
+                self.agent_selector_current = len(self.agents) - 1
+        elif symbol == key.L:
+            agent = self.agents[self.agent_selector_current](
+                Ship(self.window.width // 2, self.window.height // 2, self.window)
+            )
+            self.screen = GameScreen(self.window, self.screen_listener, [agent])
+
     def draw(self, window):
         """
         Draw the stars, title and instructions on the window.
@@ -142,6 +159,9 @@ class MenuScreen(Screen):
                           x=window.width // 2, y=window.height // 2, anchor_x="center", anchor_y="bottom").draw()
         pyglet.text.Label("W to Boost, D and A to turn and Space to Shoot", font_name="Arial", font_size=12,
                           x=window.width // 2, y=window.height // 2,
+                          anchor_x="center", anchor_y="top").draw()
+        pyglet.text.Label("Agent: " + self.agents[self.agent_selector_current].__name__, font_name="Arial", font_size=12,
+                          x=window.width // 2, y=(window.height // 2) - 18,
                           anchor_x="center", anchor_y="top").draw()
 
     def update(self, window):
@@ -299,15 +319,7 @@ class Controller(ScreenListener):
 
         @self.window.event
         def on_key_press(symbol, modifiers):
-            if symbol == key.L:
-                self.screen = GameScreen(self.window, self,
-                                         [UserAgent(Ship(self.window.width // 2, self.window.height // 2,
-                                                         self.window), self.window)])
-            elif symbol == key.O:
-                self.screen = GameScreen(self.window, self,
-                                         [DumbAgent(Ship(self.window.width // 2, self.window.height // 2,
-                                                         self.window))])
-            elif symbol == key.K:
+            if symbol == key.K:
                 self.screen = MenuScreen(self.window, self)
             self.screen.on_key_press(symbol, modifiers)
 
