@@ -90,6 +90,12 @@ class Screen(ABC):
         """
         pass
 
+    def kill_screen(self):
+        """
+        End any running jobs on the screen.
+        """
+        pass
+
     def on_key_release(self, symbol, modifiers):
         """
         Add nothing to the default key release handler.
@@ -136,12 +142,12 @@ class MenuScreen(Screen):
     def on_key_press(self, symbol, modifiers):
         if symbol == key.RIGHT:
             self.agent_selector_current = (self.agent_selector_current + 1) % len(self.agents)
-            print(self.agent_selector_current)
         elif symbol == key.LEFT:
             self.agent_selector_current = (self.agent_selector_current - 1) % len(self.agents)
             if self.agent_selector_current < 0:
                 self.agent_selector_current = len(self.agents) - 1
         elif symbol == key.L:
+            self.kill_screen()
             agent = self.agents[self.agent_selector_current](
                 Ship(self.window.width // 2, self.window.height // 2, self.window)
             )
@@ -193,6 +199,9 @@ class MenuScreen(Screen):
                     self.stars.vertices[i+1] += window.height//300
                 else:
                     self.stars.vertices[i+1] -= window.height//300
+
+    def kill_screen(self):
+        self.stars_runner.remove_all_jobs()
 
 
 class GameScreen(Screen):
@@ -320,6 +329,7 @@ class Controller(ScreenListener):
         @self.window.event
         def on_key_press(symbol, modifiers):
             if symbol == key.K:
+                self.screen.kill_screen()
                 self.screen = MenuScreen(self.window, self)
             self.screen.on_key_press(symbol, modifiers)
 
