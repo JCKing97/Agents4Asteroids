@@ -37,6 +37,7 @@ class ObjectDetectionAgent(Agent):
 
 
 class ObjectDetectionTrainingAgent(ReactiveAgent):
+    # TODO https://pythonprogramming.net/haar-cascade-object-detection-python-opencv-tutorial/
 
     def __init__(self, ship):
         super().__init__(ship)
