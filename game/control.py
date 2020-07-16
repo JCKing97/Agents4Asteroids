@@ -162,7 +162,9 @@ class Game:
         elif decision is Action.STOPBOOST:
             agent_ship.stop_boost()
         elif decision is Action.FIRE:
-            self.particles.append(agent_ship.fire())
+            cannon_fire = agent_ship.fire()
+            if cannon_fire is not None:
+                self.particles.append(cannon_fire)
 
     def intersecting_ship(self, asteroid, ship):
         """ Calculates the collision detection between the ship and asteroids. """

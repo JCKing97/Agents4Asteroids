@@ -3,6 +3,7 @@ import random
 from enum import Enum
 from math import cos, sin, pi
 from abc import ABC, abstractmethod
+from time import time
 
 
 class TurnState(Enum):
@@ -80,6 +81,8 @@ class Ship(Entity):
         self.particle_canon_speed = 15
         self.window_width = window.width
         self.window_height = window.height
+        self.reload_time = 0.25
+        self.last_fire_time = time()
 
     def turn_right(self):
         """ Changes the state of the ship to turn right. """
@@ -113,13 +116,18 @@ class Ship(Entity):
         self.boost_state = BoostState.STATIONARY
 
     def fire(self):
-        """ Returns a particle object that is spawned from the front of the ship. """
-        return Particle(
-            self.centre_x + (2 * self.height * cos(self.facing)),
-            self.centre_y + (2 * self.height * sin(self.facing)),
-            self.particle_canon_speed * cos(self.facing),
-            self.particle_canon_speed * sin(self.facing)
-        )
+        """ Returns a particle object that is spawned from the front of the ship or None if not ready to fire. """
+        current_time = time()
+        if current_time - self.last_fire_time > self.reload_time:
+            self.last_fire_time = current_time
+            return Particle(
+                self.centre_x + (2 * self.height * cos(self.facing)),
+                self.centre_y + (2 * self.height * sin(self.facing)),
+                self.particle_canon_speed * cos(self.facing),
+                self.particle_canon_speed * sin(self.facing)
+            )
+        else:
+            return None
 
     def velocity_handler(self):
         """
