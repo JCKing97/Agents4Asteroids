@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import Type
 
 from pyglet.window import key
 

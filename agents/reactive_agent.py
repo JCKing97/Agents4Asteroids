@@ -4,8 +4,9 @@ import math
 from game.agent import Agent, Action
 from game.perception import Perception, VectorPerception
 from game.entities import Ship
-from game.physics import dist, line_point, is_left
-import pyglet
+from game.physics import dist
+
+from agents.decide import attack_nearest_asteroid
 
 
 class ReactiveAgent(Agent):
@@ -34,20 +35,7 @@ class ReactiveAgent(Agent):
                 self.asteroid_radius = asteroid["radius"]
 
     def decide(self) -> Action:
-        point_x = int(self.ship.centre_x + (2 * self.ship.height * math.cos(self.ship.facing)))
-        point_y = int(self.ship.centre_y + (2 * self.ship.height * math.sin(self.ship.facing)))
-        line_vector_facing = line_point([point_x, point_y], [self.ship.centre_x, self.ship.centre_y], 100)
-        line_vector_behind = line_point([point_x, point_y], [self.ship.centre_x, self.ship.centre_y], -100)
-        dist_from_ship_to_asteroid_to_point_facing = dist([point_x, point_y], self.closest_asteroid) + \
-                                                     dist(line_vector_facing, self.closest_asteroid)
-        dist_from_ship_to_point_facing = dist([point_x, point_y], line_vector_facing)
-        if dist_from_ship_to_point_facing - self.asteroid_radius <= dist_from_ship_to_asteroid_to_point_facing <= \
-                dist_from_ship_to_point_facing + self.asteroid_radius:
-            return Action.FIRE
-        if is_left(line_vector_behind, line_vector_facing, self.closest_asteroid):
-            return Action.TURNLEFT
-        else:
-            return Action.TURNRIGHT
+        return attack_nearest_asteroid(self.ship, self.closest_asteroid, self.asteroid_radius)
 
     @staticmethod
     def get_perception_type() -> Type[Perception]:

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+import pyglet
 
 from game.entities import Ship, Particle, Asteroid
 
@@ -101,3 +102,25 @@ class NoPerception(Perception):
         :return: None
         """
         pass
+
+
+class ImagePerception(Perception):
+
+    def __init__(self, ship: Ship, particles: List[Particle], asteroids: List[Asteroid], other_ships: List[Ship]):
+        """
+        Initialise nothing.
+
+        :param ship: The ship this perception is from.
+        :param particles: The particles in the game.
+        :param asteroids: The asteroids in the game.
+        :param other_ships: The other ships in the game.
+        """
+        super().__init__()
+
+    def get_perception_data(self):
+        """
+        Return an image of the current state of the screen
+
+        :rtype: :py:class:`~pyglet.image.ColorBufferImage`
+        """
+        pyglet.image.get_buffer_manager().get_color_buffer()
