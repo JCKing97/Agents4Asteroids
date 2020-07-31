@@ -2,6 +2,7 @@ from typing import Type
 import os
 import numpy as np
 from time import time
+import cv2
 from PIL import ImageGrab
 
 from game.agent import Agent, Action
@@ -49,9 +50,9 @@ class ObjectDetectionTrainingAgent(ReactiveAgent):
         super().perceive(perception)
         current_time = time()
         if current_time - self.last_recorded_image_time > 2:
-            image = ImageGrab.grab()
-            cv_img = np.asarray(image).copy()
-            detect_window_in_image(self.templates, )
-            next_image_num = len(os.listdir("training_images"))
-            image.save("training_images/image_{}.png".format(next_image_num))
+            image = ImageGrab.grab().convert("RGB")
+            cv_image = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2GRAY)
+            detect_window_in_image(self.templates, cv_image)
+            # next_image_num = len(os.listdir("training_images"))
+            # image.save("training_images/image_{}.png".format(next_image_num))
             self.last_recorded_image_time = current_time
