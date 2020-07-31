@@ -3,7 +3,8 @@ import os
 import numpy as np
 from time import time
 import cv2
-from PIL import ImageGrab, Image
+from PIL import ImageGrab
+from time import time
 
 from game.agent import Agent, Action
 from game.perception import Perception, ImagePerception, VectorPerception
@@ -42,7 +43,7 @@ class ObjectDetectionTrainingAgent(ReactiveAgent):
     def __init__(self, ship):
         super().__init__(ship)
         self.last_recorded_image_time = time()
-        template_dir = "training_images/templates"
+        template_dir = "training_images/templates/window"
         self.templates = [os.path.join(template_dir, template) for template in os.listdir(template_dir)]
 
     def perceive(self, perception: VectorPerception):
@@ -51,5 +52,5 @@ class ObjectDetectionTrainingAgent(ReactiveAgent):
         if current_time - self.last_recorded_image_time > 2:
             image = ImageGrab.grab().convert("RGB")
             cv_image = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2GRAY)
-            window_image: Image = detect_window_in_image(self.templates, cv_image)
+            window_image: np.ndarray = detect_window_in_image(self.templates, cv_image)
             self.last_recorded_image_time = current_time
