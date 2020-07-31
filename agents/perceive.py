@@ -2,8 +2,6 @@ from typing import Tuple, List
 from pyglet.image import ColorBufferImage
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
-from time import time
 from PIL import Image
 
 
@@ -11,7 +9,14 @@ def get_closest_asteroid_from_image(image: ColorBufferImage) -> Tuple[List[int],
     return [1, 2], 3
 
 
-def detect_window_in_image(templates: List[str], cv_img):
+def detect_window_in_image(templates: List[str], cv_img) -> Image:
+    """
+    Use multiple templates to detect a section in cv_img where the window of the game is and return that image.
+
+    :param templates: The template image filenames to detect the section of the image with.
+    :param cv_img: The
+    :return: An
+    """
     lefts = []
     tops = []
     bottoms = []
@@ -32,11 +37,6 @@ def detect_window_in_image(templates: List[str], cv_img):
     median_bottom = np.median(bottoms)
     median_right = np.median(rights)
 
-    print(median_left)
-    print(median_top)
-    print(median_right)
-    print(median_bottom)
-
     im = Image.fromarray(cv_img)
     im_cropped = im.crop((median_left, median_top, median_right, median_bottom))
-    im_cropped.save("training_images/detected_{}.jpg".format(time()))
+    return im_cropped
